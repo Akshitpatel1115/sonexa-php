@@ -143,17 +143,30 @@ const CreateAlbum = () => {
   };
 
   return (
-    <div className="mx-auto max-w-3xl p-4 sm:p-8 pb-16">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-white sm:text-4xl">Create New Album</h1>
-        <p className="mt-2 text-text-secondary">Compile your uploaded tracks into a new album.</p>
+    <div className="mx-auto max-w-3xl p-4 sm:p-8 pb-16 flex flex-col gap-8">
+      {/* Artist Studio Hero Banner */}
+      <div className="relative w-full rounded-3xl p-6 sm:p-8 glass-panel border border-white/5 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl bg-gradient-to-r from-purple-900/40 via-indigo-950/60 to-slate-900/80">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#8B5CF6] flex items-center justify-center shadow-xl shrink-0">
+            <FiMusic className="w-10 h-10 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider bg-[#6C63FF] text-white rounded-full">
+                Artist Studio
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">Create New Album</h1>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">Compile your uploaded spatial tracks into a cohesive album collection.</p>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         
         {/* Album Details Section */}
-        <div className="rounded-3xl border border-border bg-surface p-6 shadow-lg sm:p-8">
-          <h2 className="mb-6 text-xl font-semibold text-white">Album Information</h2>
+        <div className="rounded-3xl border border-white/5 glass-card p-6 shadow-xl sm:p-8">
+          <h2 className="mb-6 text-xl font-bold text-white">Album Information</h2>
           <Input
             label="Album Title"
             name="title"
@@ -165,54 +178,54 @@ const CreateAlbum = () => {
         </div>
 
         {/* Tracks Selection Section */}
-        <div className="rounded-3xl border border-border bg-surface p-6 shadow-lg sm:p-8">
+        <div className="rounded-3xl border border-white/5 glass-card p-6 shadow-xl sm:p-8">
           <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold text-white">Select Tracks</h2>
-              <p className="text-sm text-text-secondary mt-1">Click to select tracks to include in this album.</p>
+              <h2 className="text-xl font-bold text-white">Select Tracks</h2>
+              <p className="text-sm text-slate-400 mt-1">Click to select tracks to include in this album collection.</p>
             </div>
-            <div className="rounded-full bg-surface-hover px-4 py-2 text-sm font-bold text-white border border-border">
+            <div className="rounded-2xl bg-[#6C63FF] px-4 py-2 text-xs font-bold text-white shadow-md border border-white/5">
               {selectedTrackIds.size} Selected
             </div>
           </div>
 
           {loading ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-12">
-              <FiLoader className="mb-4 text-4xl text-primary animate-spin" />
-              <p className="text-text-secondary font-medium">Loading your tracks...</p>
+            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/5 py-12">
+              <FiLoader className="mb-4 text-4xl text-[#6C63FF] animate-spin" />
+              <p className="text-slate-400 font-medium">Loading your tracks...</p>
             </div>
           ) : artistTracks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border py-12 transition-colors">
-              <FiMusic className="mb-4 text-5xl text-text-secondary/50" />
-              <p className="text-text-secondary font-medium">You haven't uploaded any tracks yet.</p>
+            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-white/5 py-12 transition-colors">
+              <FiMusic className="mb-4 text-5xl text-slate-400" />
+              <p className="text-slate-400 font-medium">You haven't uploaded any tracks yet.</p>
             </div>
           ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+            <div className="space-y-2.5 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
               {artistTracks.map((track) => {
                 const isSelected = selectedTrackIds.has(track._id);
                 return (
                   <div 
                     key={track._id} 
                     onClick={() => toggleTrackSelection(track._id)}
-                    className={`group flex items-center gap-4 rounded-xl p-3 pl-4 border cursor-pointer transition-all duration-200 ${
+                    className={`group flex items-center gap-4 rounded-2xl p-3.5 pl-4 border cursor-pointer transition-all duration-200 ${
                       isSelected 
-                        ? "bg-primary/10 border-primary shadow-sm" 
-                        : "bg-background border-border/50 hover:border-border hover:bg-surface-hover"
+                        ? "bg-[#6C63FF]/15 border-[#6C63FF]/50 shadow-sm" 
+                        : "bg-white/5 border-white/5 hover:border-white/5 hover:bg-white/10"
                     }`}
                   >
-                    <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded border transition-colors ${
-                      isSelected ? "bg-primary border-primary text-black" : "border-text-secondary bg-transparent group-hover:border-white"
+                    <div className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-lg border transition-colors ${
+                      isSelected ? "bg-[#6C63FF] border-[#6C63FF] text-white" : "border-slate-500 bg-transparent group-hover:border-white"
                     }`}>
                       {isSelected && <FiCheck strokeWidth={3} />}
                     </div>
                     <div className="flex-1 overflow-hidden flex flex-col">
-                      <span className={`truncate font-medium transition-colors ${isSelected ? "text-primary" : "text-white"}`}>
+                      <span className={`truncate text-sm font-bold transition-colors ${isSelected ? "text-[#6C63FF]" : "text-white"}`}>
                         {track.title}
                       </span>
                     </div>
                     <button
                       onClick={(e) => initiateTrackDelete(e, track._id)}
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-text-secondary hover:bg-red-500/20 hover:text-red-500 transition-colors"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
                       title="Delete Track"
                     >
                       <FiTrash2 />
@@ -225,9 +238,13 @@ const CreateAlbum = () => {
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-center pt-4">
-          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-16 py-4 text-lg font-bold disabled:opacity-50">
-            {isSubmitting ? "Publishing..." : "Publish Album"}
+        <div className="flex justify-center pt-2">
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="w-full sm:w-auto px-16 py-4 rounded-2xl bg-[#6C63FF] hover:bg-[#8B5CF6] text-white text-base font-bold shadow-xl shadow-[#6C63FF]/40 border border-white/5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+          >
+            {isSubmitting ? "Publishing Album..." : "Publish Album to Catalog"}
           </Button>
         </div>
       </form>

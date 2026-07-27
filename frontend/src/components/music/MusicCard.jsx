@@ -16,10 +16,11 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
   const isCurrentSong = currentSong?._id === song._id;
   const isCurrentlyPlaying = isCurrentSong && isPlaying;
 
-  const title = song.title || "Midnight City";
-  const artist = song.artist?.username || song.artist || "Unknown Artist";
+  const title = song.title || "Untitled Track";
+  const artist = song.artist?.username || song.artist_ref?.username || song.artist || "Unknown Artist";
 
-  const artistId = song.artist?._id ? song.artist._id.toString() : song.artist?.toString();
+  const artistId = (song.artist?._id ? song.artist._id.toString() : song.artist?.toString()) || 
+                   (song.artist_ref?._id ? song.artist_ref._id.toString() : song.artist_ref?.toString());
   const userId = user?._id ? user._id.toString() : user?.id?.toString();
   const isOwner = user?.role === 'artist' && Boolean(userId) && Boolean(artistId) && userId === artistId;
 
@@ -123,21 +124,21 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
         if (isCurrentSong) togglePlay();
         else playSong(song, queue);
       }}
-      className={`group relative flex flex-col gap-3 rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 cursor-pointer border ${
+      className={`group relative flex flex-col p-3.5 rounded-3xl glass-card hover:border-[#6C63FF]/40 cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1.5 ${
         isCurrentSong 
-          ? "bg-surface-hover border-primary shadow-lg shadow-primary/10" 
-          : "bg-surface border-border/50 hover:bg-surface-hover hover:shadow-lg hover:shadow-primary/5 hover:border-border"
+          ? "border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20" 
+          : ""
       }`}
     >
-      {/* Icon Placeholder */}
-      <div className="relative aspect-square w-full flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-surface-hover to-background">
-        <FiMusic className="text-5xl text-text-secondary/50 group-hover:text-primary/50 transition-colors duration-300" />
+      {/* Artwork / Placeholder */}
+      <div className="relative aspect-square w-full flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-black/40 border border-white/5 mb-3 shadow-lg">
+        <FiMusic className="text-5xl text-slate-400 group-hover:text-[#6C63FF] transition-colors duration-300" />
         
         {/* Delete Button - Top Right */}
         {isOwner && (
           <button 
             onClick={initiateDelete}
-            className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white md:text-text-secondary opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all duration-300 z-10 shadow-md"
+            className="absolute top-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white md:text-slate-300 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-red-500 hover:text-white transition-all duration-300 z-10 shadow-md"
             title="Delete Track"
           >
             <FiTrash2 className="text-sm" />
@@ -155,12 +156,12 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
               if (isCurrentSong) togglePlay();
               else playSong(song, queue);
             }}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-primary text-black shadow-lg shadow-black/40 transition-transform duration-300 hover:scale-105 hover:bg-primary-hover active:scale-95"
+            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#6C63FF] hover:bg-[#8B5CF6] text-white shadow-xl shadow-[#6C63FF]/50 border border-white/5 transition-transform duration-300 hover:scale-105 active:scale-95"
           >
             {isCurrentlyPlaying ? (
-              <FiPause className="text-xl fill-black" />
+              <FiPause className="text-xl fill-white" />
             ) : (
-              <FiPlay className="ml-1 text-xl fill-black" />
+              <FiPlay className="ml-1 text-xl fill-white" />
             )}
             </button>
           </div>
@@ -169,10 +170,10 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
 
       {/* Info */}
       <div className="flex flex-col">
-        <h3 className={`truncate text-base font-semibold ${isCurrentSong ? "text-primary" : "text-white"}`}>
+        <h3 className={`truncate text-sm font-bold transition-colors ${isCurrentSong ? "text-[#6C63FF]" : "text-white group-hover:text-[#6C63FF]"}`}>
           {title}
         </h3>
-        <p className="truncate text-sm text-text-secondary mt-1">
+        <p className="truncate text-xs text-slate-400 mt-0.5">
           {artist}
         </p>
       </div>

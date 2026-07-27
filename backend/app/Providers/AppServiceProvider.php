@@ -31,64 +31,44 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting(): void
     {
-        // General API limits (60 per minute per user/IP)
+        // General API limits (temporarily disabled, original: 60 per minute per user/IP)
         RateLimiter::for('api.general', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->_id ?: $request->ip())
-                ->response(function (Request $request, array $headers) {
-                    Log::warning('General API rate limit exceeded', ['ip' => $request->ip()]);
-                    // Response formatting handled in global exception handler
-                });
+            return Limit::none();
         });
 
-        // Admin API limits (120 per minute per admin/IP)
+        // Admin API limits (temporarily disabled, original: 120 per minute per admin/IP)
         RateLimiter::for('api.admin', function (Request $request) {
-            return Limit::perMinute(120)->by($request->get('admin')?->_id ?: $request->ip())
-                ->response(function (Request $request, array $headers) {
-                    Log::warning('Admin API rate limit exceeded', ['ip' => $request->ip()]);
-                });
+            return Limit::none();
         });
 
-        // Registration spam protection (5 per 10 minutes)
+        // Registration spam protection (temporarily disabled, original: 5 per 10 minutes)
         RateLimiter::for('auth.register', function (Request $request) {
-            return Limit::perMinutes(10, 5)->by($request->ip())
-                ->response(function (Request $request, array $headers) {
-                    Log::warning('Registration rate limit exceeded', ['ip' => $request->ip()]);
-                });
+            return Limit::none();
         });
 
-        // Login abuse protection (5 per 15 minutes)
+        // Login abuse protection (temporarily disabled, original: 5 per 15 minutes)
         RateLimiter::for('auth.login', function (Request $request) {
-            $identifier = $request->input('email') ?: $request->input('username');
-            return [
-                Limit::perMinutes(15, 5)->by($request->ip()),
-                Limit::perMinutes(15, 5)->by($identifier)
-            ];
+            return Limit::none();
         });
 
-        // Forgot password abuse (3 per 15 minutes)
+        // Forgot password abuse (temporarily disabled, original: 3 per 15 minutes)
         RateLimiter::for('auth.forgot_password', function (Request $request) {
-            return Limit::perMinutes(15, 3)->by($request->ip())
-                ->response(function (Request $request, array $headers) {
-                    Log::warning('Forgot password rate limit exceeded', ['ip' => $request->ip()]);
-                });
+            return Limit::none();
         });
 
-        // OTP resend abuse (5 per 15 minutes)
+        // OTP resend abuse (temporarily disabled, original: 5 per 15 minutes)
         RateLimiter::for('auth.resend_otp', function (Request $request) {
-            return Limit::perMinutes(15, 5)->by($request->ip());
+            return Limit::none();
         });
 
-        // OTP verification spam (5 per 5 minutes)
+        // OTP verification spam (temporarily disabled, original: 5 per 5 minutes)
         RateLimiter::for('auth.verify_otp', function (Request $request) {
-            return Limit::perMinutes(5, 5)->by($request->ip());
+            return Limit::none();
         });
 
-        // Global search rate limit (60 per minute per IP)
+        // Global search rate limit (temporarily disabled, original: 60 per minute per IP)
         RateLimiter::for('api.search', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->_id ?: $request->ip())
-                ->response(function (Request $request, array $headers) {
-                    Log::warning('Search API rate limit exceeded', ['ip' => $request->ip()]);
-                });
+            return Limit::none();
         });
     }
 }

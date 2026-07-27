@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Models\AuthSecurity;
 use Carbon\Carbon;
 
 class AdminArtistController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('role', 'artist');
+        $query = User::with('authSecurity')->where('role', 'artist');
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -21,14 +22,20 @@ class AdminArtistController extends Controller
 
         $artists = $query->orderBy('created_at', 'desc')->paginate(20);
 
-        // Lazy cleanup of expired blocks
-        $now = Carbon::now();
+        // Map authBlock back for frontend compatibility
         foreach ($artists as $artist) {
-            if ($artist->authBlock && isset($artist->authBlock['blockedUntil'])) {
-                if (Carbon::parse($artist->authBlock['blockedUntil'])->isPast()) {
+            if ($artist->authSecurity && $artist->authSecurity->auth_block_until) {
+                if (Carbon::parse($artist->authSecurity->auth_block_until)->isPast()) {
+                    $artist->authSecurity->auth_block_until = null;
+                    $artist->authSecurity->save();
                     $artist->authBlock = null;
-                    $artist->save();
+                } else {
+                    $artist->authBlock = [
+                        'blockedUntil' => $artist->authSecurity->auth_block_until
+                    ];
                 }
+            } else {
+                $artist->authBlock = null;
             }
         }
 
@@ -40,8 +47,16 @@ class AdminArtistController extends Controller
 
     public function show($id)
     {
-        $artist = User::where('_id', $id)->where('role', 'artist')->first();
+        $artist = User::with('authSecurity')->where('_id', $id)->where('role', 'artist')->first();
         if (!$artist) return response()->json(['message' => 'Artist not found'], 404);
+
+        if ($artist->authSecurity && $artist->authSecurity->auth_block_until && Carbon::parse($artist->authSecurity->auth_block_until)->isFuture()) {
+            $artist->authBlock = [
+                'blockedUntil' => $artist->authSecurity->auth_block_until
+            ];
+        } else {
+            $artist->authBlock = null;
+        }
 
         return response()->json([
             'message' => 'Artist retrieved successfully',
@@ -49,16 +64,18 @@ class AdminArtistController extends Controller
         ]);
     }
 
-    // Concept: Using authBlock to suspend an artist, similar to User blocking.
-    // Real implementation might have an `is_approved` boolean field in the future.
     public function approve(Request $request, $id)
     {
-        // Approve unblocks them
         $admin = $request->get('admin');
         $artist = User::where('_id', $id)->where('role', 'artist')->first();
         if (!$artist) return response()->json(['message' => 'Artist not found'], 404);
 
-        $artist->authBlock = null;
+        $security = AuthSecurity::where('user_id', $artist->_id)->first();
+        if ($security) {
+            $security->auth_block_until = null;
+            $security->save();
+        }
+
         $artist->status = 'active';
         $artist->save();
 
@@ -78,11 +95,9 @@ class AdminArtistController extends Controller
         $artist = User::where('_id', $id)->where('role', 'artist')->first();
         if (!$artist) return response()->json(['message' => 'Artist not found'], 404);
 
-        $artist->authBlock = [
-            'blockedUntil' => Carbon::now()->addYears(100),
-            'reason' => 'Suspended by Administrator'
-        ];
-        $artist->save();
+        $security = AuthSecurity::firstOrCreate(['user_id' => $artist->_id], ['username' => $artist->username]);
+        $security->auth_block_until = Carbon::now()->addYears(100);
+        $security->save();
 
         AuditLog::create([
             'admin_id' => $admin->_id,
@@ -104,6 +119,8 @@ class AdminArtistController extends Controller
             return response()->json(['message' => 'Only pending artists can be rejected'], 400);
         }
 
+        AuthSecurity::where('user_id', $artist->_id)->delete();
+        \App\Models\EmailOtp::where('user_id', $artist->_id)->delete();
         $artist->delete();
 
         AuditLog::create([

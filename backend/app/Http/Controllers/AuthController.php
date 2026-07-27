@@ -2,9 +2,10 @@
 namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
-use App\Models\PendingUser;
 use App\Models\Admin;
 use App\Models\AuditLog;
+use App\Models\EmailOtp;
+use App\Models\AuthSecurity;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
@@ -12,7 +13,6 @@ use App\Mail\PasswordResetMail;
 use Firebase\JWT\JWT;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cookie;
-// Removed RateLimiter because we handle brute force via MongoDB directly
 
 class AuthController extends Controller
 {
@@ -32,23 +32,39 @@ class AuthController extends Controller
             ]
         ]);
         
-        if (User::where('email', $request->email)->orWhere('username', $request->username)->first()) {
+        $existingUser = User::where('email', $request->email)->orWhere('username', $request->username)->first();
+        if ($existingUser) {
+            if ($existingUser->status === 'unverified') {
+                return response()->json(['success' => false, 'message' => 'Registration is pending. Please verify your OTP to continue.'], 409);
+            }
             return response()->json(['success' => false, 'message' => 'User already exists. Please log in.'], 409);
         }
-        if (PendingUser::where('email', $request->email)->first()) {
-            return response()->json(['success' => false, 'message' => 'Registration is pending. Please verify your OTP to continue.'], 409);
-        }
+
         $otp = random_int(100000, 999999);
-        PendingUser::create([
+        
+        $user = User::create([
             'email' => $request->email,
             'username' => $request->username,
             'password' => Hash::make($request->password),
-            'otp' => Hash::make((string) $otp),
             'role' => $request->role ?? 'user',
-            'otpExpiresAt' => Carbon::now()->addMinutes(10),
-            'resendAvailableAt' => Carbon::now()->addMinutes(2),
-            'expiresAt' => Carbon::now()->addMinutes(30)
+            'status' => 'unverified',
+            'avatar' => $request->avatar ?: '1.jpg',
         ]);
+
+        EmailOtp::create([
+            'user_id' => $user->_id,
+            'email' => $request->email,
+            'otp' => Hash::make((string) $otp),
+            'type' => 'registration',
+            'expires_at' => Carbon::now()->addMinutes(10),
+            'resend_available_at' => Carbon::now()->addMinutes(2)
+        ]);
+
+        AuthSecurity::create([
+            'user_id' => $user->_id,
+            'username' => $user->username,
+        ]);
+
         try {
             Mail::to($request->email)->send(new OtpMail($otp));
         } catch (\Exception $e) {
@@ -61,38 +77,49 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email', 'otp' => 'required']);
         
-        $pendingUser = PendingUser::where('email', $request->email)->first();
-        if (!$pendingUser) return response()->json(['success' => false, 'message' => 'No pending registration found.'], 404);
-
-        if ($pendingUser->authBlock && isset($pendingUser->authBlock['blockedUntil'])) {
-            if (Carbon::parse($pendingUser->authBlock['blockedUntil'])->isFuture()) {
-                return response()->json(['success' => false, 'message' => 'Too many failed attempts. Please try again later.'], 423);
-            } else {
-                $pendingUser->unset('authBlock');
-            }
+        $user = User::where('email', $request->email)->where('status', 'unverified')->first();
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'No pending registration found.'], 404);
         }
 
-        if (Carbon::now()->greaterThan($pendingUser->otpExpiresAt)) {
-            $pendingUser->delete();
-            return response()->json(['success' => false, 'message' => 'OTP has expired.'], 400);
+        $security = AuthSecurity::firstOrCreate(['user_id' => $user->_id], ['username' => $user->username]);
+
+        if ($security->auth_block_until && Carbon::parse($security->auth_block_until)->isFuture()) {
+            return response()->json(['success' => false, 'message' => 'Too many failed attempts. Please try again later.'], 423);
+        } elseif ($security->auth_block_until) {
+            $security->auth_block_until = null;
+            $security->save();
         }
 
-        if (!Hash::check((string) $request->otp, $pendingUser->otp)) {
-            $pendingUser->otpAttempts = ($pendingUser->otpAttempts ?? 0) + 1;
-            if ($pendingUser->otpAttempts >= 5) {
-                $pendingUser->authBlock = [
-                    'blockedUntil' => Carbon::now()->addMinutes(5),
-                    'reason' => 'Too many OTP attempts'
-                ];
-                $pendingUser->otpAttempts = 0;
+        $emailOtp = EmailOtp::where('user_id', $user->_id)->where('type', 'registration')->first();
+        if (!$emailOtp || Carbon::now()->greaterThan($emailOtp->expires_at)) {
+            // Delete user if OTP completely expired (to free up email for re-registration)
+            $user->delete();
+            $security->delete();
+            if ($emailOtp) $emailOtp->delete();
+            return response()->json(['success' => false, 'message' => 'OTP has expired. Please register again.'], 400);
+        }
+
+        if (!Hash::check((string) $request->otp, $emailOtp->otp)) {
+            $security->otp_attempts = ($security->otp_attempts ?? 0) + 1;
+            if ($security->otp_attempts >= 5) {
+                $security->auth_block_until = Carbon::now()->addMinutes(5);
+                $security->otp_attempts = 0;
             }
-            $pendingUser->save();
+            $security->save();
             return response()->json(['success' => false, 'message' => 'Invalid verification code.'], 401);
         }
         
-        $status = ($pendingUser->role === 'artist') ? 'pending' : 'active';
-        $user = User::create(['username' => $pendingUser->username, 'email' => $pendingUser->email, 'password' => $pendingUser->password, 'role' => $pendingUser->role, 'status' => $status]);
-        $pendingUser->delete();
+        $status = ($user->role === 'artist') ? 'pending' : 'active';
+        $user->update([
+            'status' => $status,
+            'email_verified_at' => Carbon::now()
+        ]);
+        
+        // Clean up registration OTP
+        $emailOtp->delete();
+        $security->otp_attempts = 0;
+        $security->save();
 
         if ($status === 'pending') {
             return response()->json(['success' => true, 'message' => 'OTP verified successfully. Your artist account is pending admin approval.'], 200);
@@ -104,22 +131,34 @@ class AuthController extends Controller
     {
         $request->validate(['email' => 'required|email']);
         
-        $pendingUser = PendingUser::where('email', $request->email)->first();
-        if (!$pendingUser) return response()->json(['success' => false, 'message' => 'No pending registration found.'], 404);
+        $user = User::where('email', $request->email)->where('status', 'unverified')->first();
+        if (!$user) return response()->json(['success' => false, 'message' => 'No pending registration found.'], 404);
 
-        if ($pendingUser->authBlock && isset($pendingUser->authBlock['blockedUntil'])) {
-            if (Carbon::parse($pendingUser->authBlock['blockedUntil'])->isFuture()) {
-                return response()->json(['success' => false, 'message' => 'Too many failed attempts. Please try again later.'], 423);
-            } else {
-                $pendingUser->unset('authBlock');
-            }
+        $security = AuthSecurity::firstOrCreate(['user_id' => $user->_id], ['username' => $user->username]);
+
+        if ($security->auth_block_until && Carbon::parse($security->auth_block_until)->isFuture()) {
+            return response()->json(['success' => false, 'message' => 'Too many failed attempts. Please try again later.'], 423);
         }
 
-        if ($pendingUser->resendAvailableAt && Carbon::now()->lessThan($pendingUser->resendAvailableAt)) {
+        $emailOtp = EmailOtp::where('user_id', $user->_id)->where('type', 'registration')->first();
+        if (!$emailOtp) {
+            $emailOtp = new EmailOtp([
+                'user_id' => $user->_id,
+                'email' => $user->email,
+                'type' => 'registration'
+            ]);
+        }
+
+        if ($emailOtp->resend_available_at && Carbon::now()->lessThan($emailOtp->resend_available_at)) {
             return response()->json(['success' => false, 'message' => 'Please wait before requesting a new OTP.'], 429);
         }
+
         $otp = random_int(100000, 999999);
-        $pendingUser->update(['otp' => Hash::make((string) $otp), 'otpExpiresAt' => Carbon::now()->addMinutes(10), 'resendAvailableAt' => Carbon::now()->addMinutes(2)]);
+        $emailOtp->otp = Hash::make((string) $otp);
+        $emailOtp->expires_at = Carbon::now()->addMinutes(10);
+        $emailOtp->resend_available_at = Carbon::now()->addMinutes(2);
+        $emailOtp->save();
+
         try {
             Mail::to($request->email)->send(new OtpMail($otp));
         } catch (\Exception $e) {}
@@ -187,40 +226,44 @@ class AuthController extends Controller
             return response()->json(['success' => false, 'message' => 'Invalid credentials.'], 401);
         }
 
-        if (isset($user->status) && $user->status === 'pending') {
+        if ($user->status === 'unverified') {
+            return response()->json(['success' => false, 'message' => 'Your account is not verified. Please verify your email.'], 403);
+        }
+
+        if ($user->status === 'pending') {
             return response()->json(['success' => false, 'message' => 'Your artist account is pending admin approval.'], 403);
         }
 
-        // Check for active authBlock from DB
-        if ($user->authBlock && isset($user->authBlock['blockedUntil'])) {
-            if (Carbon::parse($user->authBlock['blockedUntil'])->isFuture()) {
-                $message = ($user->authBlock['reason'] ?? '') === 'Too many login attempts' 
-                    ? 'Too many failed login attempts. Please try again after sometime.' 
-                    : 'Your account is suspended. Please contact support.';
-                return response()->json(['success' => false, 'message' => $message], 403);
-            } else {
-                $user->unset('authBlock');
-            }
-        } elseif ($user->authBlock) {
-             return response()->json(['success' => false, 'message' => 'Your account is suspended. Please contact support.'], 403);
+        $security = AuthSecurity::firstOrCreate(['user_id' => $user->_id], ['username' => $user->username]);
+
+        // Check for active authBlock
+        if ($security->auth_block_until && Carbon::parse($security->auth_block_until)->isFuture()) {
+            return response()->json(['success' => false, 'message' => 'Your account is temporarily suspended. Please try again later or contact support.'], 403);
+        } elseif ($security->auth_block_until) {
+            $security->auth_block_until = null;
+            $security->save();
         }
 
         if (!Hash::check($request->password, $user->password)) {
-            $user->loginAttempts = ($user->loginAttempts ?? 0) + 1;
-            if ($user->loginAttempts >= 5) {
-                $user->authBlock = [
-                    'blockedUntil' => Carbon::now()->addMinutes(15),
-                    'reason' => 'Too many login attempts'
-                ];
-                $user->loginAttempts = 0;
+            $security->login_attempts = ($security->login_attempts ?? 0) + 1;
+            $security->last_failed_login_at = Carbon::now();
+            if ($security->login_attempts >= 5) {
+                $security->auth_block_until = Carbon::now()->addMinutes(15);
+                $security->login_attempts = 0;
             }
-            $user->save();
+            $security->save();
             return response()->json(['success' => false, 'message' => 'Invalid credentials.'], 401);
         }
 
-        if (isset($user->loginAttempts) && $user->loginAttempts > 0) {
-            $user->unset('loginAttempts');
-        }
+        // Successful login resets attempts and logs ip
+        $security->login_attempts = 0;
+        $security->last_login_at = Carbon::now();
+        $security->last_login_ip = $request->ip();
+        $security->last_login_user_agent = $request->header('User-Agent');
+        $security->save();
+        
+        $user->last_login_at = Carbon::now();
+        $user->save();
 
         $token = JWT::encode(['id' => (string) $user->_id, 'role' => $user->role], env('JWT_SECRET'), 'HS256');
         return response()->json(['success' => true, 'message' => 'Login successful.', 'data' => ['user' => $user, 'token' => $token]], 200)->withCookie(Cookie::make('token', $token, 7 * 24 * 60, null, null, true, true, false, 'None'));
@@ -238,22 +281,32 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         if (!$user) return response()->json(['success' => true, 'message' => 'If an account exists, a password reset code has been sent to your email.'], 200);
 
-        // Check for active authBlock from DB
-        if ($user->authBlock && isset($user->authBlock['blockedUntil'])) {
-            if (Carbon::parse($user->authBlock['blockedUntil'])->isFuture()) {
-                return response()->json(['success' => false, 'message' => 'Your account is suspended. Please contact support.'], 403);
-            } else {
-                $user->unset('authBlock');
-            }
-        } elseif ($user->authBlock) {
-             return response()->json(['success' => false, 'message' => 'Your account is suspended. Please contact support.'], 403);
+        $security = AuthSecurity::firstOrCreate(['user_id' => $user->_id], ['username' => $user->username]);
+
+        if ($security->auth_block_until && Carbon::parse($security->auth_block_until)->isFuture()) {
+            return response()->json(['success' => false, 'message' => 'Your account is suspended. Please contact support.'], 403);
         }
 
-        if ($user->resetPasswordResendAvailableAt && Carbon::now()->lessThan($user->resetPasswordResendAvailableAt)) {
+        $emailOtp = EmailOtp::where('user_id', $user->_id)->where('type', 'forgot_password')->first();
+        if (!$emailOtp) {
+            $emailOtp = new EmailOtp([
+                'user_id' => $user->_id,
+                'email' => $user->email,
+                'type' => 'forgot_password'
+            ]);
+        }
+
+        if ($emailOtp->resend_available_at && Carbon::now()->lessThan($emailOtp->resend_available_at)) {
             return response()->json(['success' => false, 'message' => 'Please wait before requesting a new OTP.'], 429);
         }
+
         $otp = random_int(100000, 999999);
-        $user->update(['resetPasswordOTP' => Hash::make((string) $otp), 'resetPasswordOTPExpiresAt' => Carbon::now()->addMinutes(10), 'resetPasswordResendAvailableAt' => Carbon::now()->addMinutes(2), 'resetPasswordVerified' => false]);
+        $emailOtp->otp = Hash::make((string) $otp);
+        $emailOtp->expires_at = Carbon::now()->addMinutes(10);
+        $emailOtp->resend_available_at = Carbon::now()->addMinutes(2);
+        $emailOtp->verified_at = null;
+        $emailOtp->save();
+
         try {
             Mail::to($user->email)->send(new PasswordResetMail($otp));
         } catch (\Exception $e) {}
@@ -267,34 +320,34 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         if (!$user) return response()->json(['success' => false, 'message' => 'User not found.'], 404);
 
-        if ($user->authBlock && isset($user->authBlock['blockedUntil'])) {
-            if (Carbon::parse($user->authBlock['blockedUntil'])->isFuture()) {
-                return response()->json(['success' => false, 'message' => 'Too many failed attempts. Please try again later.'], 423);
-            } else {
-                $user->unset('authBlock');
-            }
+        $security = AuthSecurity::firstOrCreate(['user_id' => $user->_id], ['username' => $user->username]);
+
+        if ($security->auth_block_until && Carbon::parse($security->auth_block_until)->isFuture()) {
+            return response()->json(['success' => false, 'message' => 'Too many failed attempts. Please try again later.'], 423);
         }
 
-        if (!$user->resetPasswordOTP || Carbon::now()->greaterThan($user->resetPasswordOTPExpiresAt)) return response()->json(['success' => false, 'message' => 'OTP has expired.'], 400);
+        $emailOtp = EmailOtp::where('user_id', $user->_id)->where('type', 'forgot_password')->first();
+
+        if (!$emailOtp || Carbon::now()->greaterThan($emailOtp->expires_at)) {
+            return response()->json(['success' => false, 'message' => 'OTP has expired.'], 400);
+        }
         
-        if (!Hash::check((string) $request->otp, $user->resetPasswordOTP)) {
-            $user->resetPasswordOtpAttempts = ($user->resetPasswordOtpAttempts ?? 0) + 1;
-            if ($user->resetPasswordOtpAttempts >= 5) {
-                $user->authBlock = [
-                    'blockedUntil' => Carbon::now()->addMinutes(5),
-                    'reason' => 'Too many OTP attempts'
-                ];
-                $user->resetPasswordOtpAttempts = 0;
+        if (!Hash::check((string) $request->otp, $emailOtp->otp)) {
+            $security->forgot_password_attempts = ($security->forgot_password_attempts ?? 0) + 1;
+            if ($security->forgot_password_attempts >= 5) {
+                $security->auth_block_until = Carbon::now()->addMinutes(5);
+                $security->forgot_password_attempts = 0;
             }
-            $user->save();
+            $security->save();
             return response()->json(['success' => false, 'message' => 'Invalid verification code.'], 401);
         }
 
-        if (isset($user->resetPasswordOtpAttempts) && $user->resetPasswordOtpAttempts > 0) {
-            $user->unset('resetPasswordOtpAttempts');
-        }
+        $security->forgot_password_attempts = 0;
+        $security->save();
 
-        $user->update(['resetPasswordVerified' => true]);
+        $emailOtp->verified_at = Carbon::now();
+        $emailOtp->save();
+
         return response()->json(['success' => true, 'message' => 'OTP verified successfully.'], 200);
     }
 
@@ -314,15 +367,75 @@ class AuthController extends Controller
         ]);
         
         $user = User::where('email', $request->email)->first();
+        if (!$user) return response()->json(['success' => false, 'message' => 'User not found.'], 404);
 
-        if ($user && $user->authBlock && isset($user->authBlock['blockedUntil']) && Carbon::parse($user->authBlock['blockedUntil'])->isFuture()) {
+        $security = AuthSecurity::firstOrCreate(['user_id' => $user->_id], ['username' => $user->username]);
+
+        if ($security->auth_block_until && Carbon::parse($security->auth_block_until)->isFuture()) {
              return response()->json(['success' => false, 'message' => 'Your account is suspended.'], 403);
         }
 
-        if (!$user || !$user->resetPasswordVerified || !$user->resetPasswordOTPExpiresAt || Carbon::now()->greaterThan($user->resetPasswordOTPExpiresAt)) {
+        $emailOtp = EmailOtp::where('user_id', $user->_id)->where('type', 'forgot_password')->first();
+
+        if (!$emailOtp || !$emailOtp->verified_at || Carbon::now()->greaterThan($emailOtp->expires_at)) {
             return response()->json(['success' => false, 'message' => 'Unauthorized password reset attempt or OTP expired.'], 401);
         }
-        $user->update(['password' => Hash::make($request->newPassword), 'resetPasswordOTP' => null, 'resetPasswordOTPExpiresAt' => null, 'resetPasswordResendAvailableAt' => null, 'resetPasswordVerified' => false]);
+
+        $user->update(['password' => Hash::make($request->newPassword)]);
+        
+        // Cleanup OTP
+        $emailOtp->delete();
+
         return response()->json(['success' => true, 'message' => 'Password reset successfully.'], 200);
+    }
+
+    public function me(Request $request)
+    {
+        if (!$request->user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $user = User::find($request->user->_id);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'user' => $user
+            ]
+        ], 200);
+    }
+
+    public function updateProfile(Request $request)
+    {
+        if (!$request->user) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+        $user = User::find($request->user->_id);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        $request->validate([
+            'avatar' => 'nullable|string',
+            'theme' => 'nullable|string'
+        ]);
+
+        if ($request->has('avatar')) {
+            $user->avatar = $request->avatar;
+        }
+        if ($request->has('theme')) {
+            $user->theme = $request->theme;
+        }
+
+        $user->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully.',
+            'data' => [
+                'user' => $user
+            ]
+        ], 200);
     }
 }

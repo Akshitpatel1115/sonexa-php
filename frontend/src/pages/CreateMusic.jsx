@@ -61,31 +61,45 @@ const CreateMusic = () => {
   };
 
   return (
-    <div className="mx-auto max-w-2xl p-4 sm:p-8 pb-16">
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-white sm:text-4xl">Upload Music</h1>
-        <p className="mt-2 text-text-secondary">Add a new track to your catalog.</p>
+    <div className="mx-auto max-w-3xl p-4 sm:p-8 pb-16 flex flex-col gap-8">
+      {/* Artist Studio Hero Banner */}
+      <div className="relative w-full rounded-3xl p-6 sm:p-8 glass-panel border border-white/5 overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl bg-gradient-to-r from-purple-900/40 via-indigo-950/60 to-slate-900/80">
+        <div className="flex items-center gap-5">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#8B5CF6] flex items-center justify-center shadow-xl shrink-0">
+            <FiMusic className="w-10 h-10 text-white" />
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider bg-[#6C63FF] text-white rounded-full">
+                Artist Studio
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mt-1">Upload New Track</h1>
+            <p className="text-xs sm:text-sm text-slate-300 font-medium mt-1">Add high-fidelity spatial sound tracks directly to your catalog.</p>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         
-        {/* Audio File Upload */}
-        <div className="rounded-3xl border border-border bg-surface p-6 shadow-lg sm:p-8 flex flex-col items-center justify-center">
-          <div className="flex flex-col items-center justify-center w-full gap-6 text-center rounded-2xl border-2 border-dashed border-border bg-background p-10 transition-colors hover:border-primary/50">
-            <FiMusic className="text-6xl text-primary/80" />
+        {/* Audio File Upload Dropzone */}
+        <div className="rounded-3xl border border-white/5 glass-panel p-6 shadow-xl sm:p-8 flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="absolute -top-16 -right-16 w-32 h-32 bg-[#6C63FF]/20 rounded-full blur-2xl pointer-events-none" />
+          <div className="flex flex-col items-center justify-center w-full gap-6 text-center rounded-2xl border-2 border-dashed border-white/5 bg-white/5 p-10 transition-colors hover:border-[#6C63FF]/50">
+            <FiUploadCloud className="text-6xl text-[#6C63FF]" />
             
             {audioFile ? (
               <div className="w-full truncate text-lg font-bold text-white px-4">
                 {audioFile.name}
               </div>
             ) : (
-              <div className="text-text-secondary">
+              <div className="text-slate-300">
                 <p className="font-semibold text-white text-lg">Select an audio file</p>
-                <p className="text-sm mt-1">MP3, WAV, FLAC</p>
+                <p className="text-sm text-slate-400 mt-1">MP3, WAV, FLAC supported</p>
               </div>
             )}
 
-            <label className="flex w-fit cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-8 py-3 text-sm font-bold text-black transition-transform hover:scale-105 active:scale-95 shadow-md hover:bg-primary-hover">
+            <label className="flex w-fit cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#6C63FF] hover:bg-[#8B5CF6] px-8 py-3.5 text-sm font-bold text-white transition-transform hover:scale-105 active:scale-95 shadow-lg shadow-[#6C63FF]/40 border border-white/5">
               <FiUploadCloud className="text-xl" />
               <span>{audioFile ? "Change File" : "Browse Files"}</span>
               <input type="file" accept="audio/*" className="hidden" onChange={handleAudioUpload} required={!audioFile} />
@@ -94,7 +108,7 @@ const CreateMusic = () => {
         </div>
 
         {/* Track Details Section */}
-        <div className="rounded-3xl border border-border bg-surface p-6 shadow-lg sm:p-8">
+        <div className="rounded-3xl border border-white/5 glass-card p-6 shadow-xl sm:p-8">
           <div className="grid gap-6">
             <Input
               label="Track Title"
@@ -108,9 +122,13 @@ const CreateMusic = () => {
         </div>
 
         {/* Submit Button */}
-        <div className="flex justify-center pt-4">
-          <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto px-16 py-4 text-lg font-bold disabled:opacity-50">
-            {isSubmitting ? "Uploading..." : "Publish Track"}
+        <div className="flex justify-center pt-2">
+          <Button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className="w-full sm:w-auto px-16 py-4 rounded-2xl bg-[#6C63FF] hover:bg-[#8B5CF6] text-white text-base font-bold shadow-xl shadow-[#6C63FF]/40 border border-white/5 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+          >
+            {isSubmitting ? "Uploading Track..." : "Publish Track to Catalog"}
           </Button>
         </div>
       </form>

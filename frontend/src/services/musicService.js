@@ -1,7 +1,10 @@
 import api from "../api/axios";
 
-export const getAllMusic = async () => {
-  const response = await api.get("/music");
+export const getAllMusic = async (page = 1, limit = 20) => {
+  const response = await api.get(`/music?page=${page}&limit=${limit}`);
+  if (Array.isArray(response.data.musics)) {
+    return { data: response.data.musics, current_page: 1, last_page: 1 };
+  }
   return response.data.musics;
 };
 
@@ -24,8 +27,11 @@ export const deleteMusic = async (id) => {
   return response.data;
 };
 
-export const getAllAlbums = async () => {
-  const response = await api.get("/album");
+export const getAllAlbums = async (page = 1, limit = 20) => {
+  const response = await api.get(`/album?page=${page}&limit=${limit}`);
+  if (Array.isArray(response.data.albums)) {
+    return { data: response.data.albums, current_page: 1, last_page: 1 };
+  }
   return response.data.albums;
 };
 
@@ -43,7 +49,7 @@ export const deleteAlbum = async (albumId) => {
   const response = await api.delete(`/album/${albumId}`);
   return response.data;
 };
-export const globalSearch = async (query) => {
-  const response = await api.get(`/search?q=${query}`);
+export const globalSearch = async (query, signal) => {
+  const response = await api.get(`/search?q=${query}`, { signal });
   return response.data;
 };

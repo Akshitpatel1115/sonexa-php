@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FiHome, FiDisc, FiPlusSquare, FiMusic, FiLogIn, FiLogOut } from "react-icons/fi";
+import { FiHome, FiDisc, FiPlusSquare, FiMusic, FiLogIn, FiLogOut, FiUser } from "react-icons/fi";
 import useAuth from "../../context/useAuth";
 import api from "../../api/axios";
 import ConfirmDialog from "../common/ConfirmDialog";
@@ -30,13 +30,17 @@ const MobileBottomNav = () => {
     { name: "Albums", path: "/album", icon: FiDisc },
   ];
 
+  if (isAuthenticated) {
+    navLinks.push({ name: "Profile", path: "/profile", icon: FiUser });
+  }
+
   if (user?.role === "artist") {
     navLinks.push({ name: "Album+", path: "/create-album", icon: FiPlusSquare });
     navLinks.push({ name: "Music+", path: "/createMusic", icon: FiMusic });
   }
 
   return (
-    <div className="md:hidden w-full flex items-center justify-around bg-surface/95 backdrop-blur-md border-t border-border h-16 shrink-0 z-50 pb-safe">
+    <div className="md:hidden mx-3 mb-3 rounded-3xl glass-panel border border-white/5 h-16 shrink-0 z-50 pb-safe shadow-2xl backdrop-blur-2xl flex items-center justify-around px-2">
       {navLinks.map((link) => {
         const Icon = link.icon;
         return (
@@ -44,11 +48,11 @@ const MobileBottomNav = () => {
             key={link.name}
             to={link.path}
             className={({ isActive }) => `
-              flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors
+              flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all duration-200
               ${
                 isActive
-                  ? "text-white"
-                  : "text-text-secondary hover:text-white"
+                  ? "text-[#6C63FF] font-extrabold scale-105"
+                  : "text-slate-400 hover:text-white"
               }
             `}
           >
@@ -62,8 +66,8 @@ const MobileBottomNav = () => {
         <NavLink
           to="/login"
           className={({ isActive }) => `
-            flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors
-            ${isActive ? "text-white" : "text-text-secondary hover:text-white"}
+            flex flex-col items-center justify-center gap-1 flex-1 h-full transition-all duration-200
+            ${isActive ? "text-[#6C63FF] font-extrabold scale-105" : "text-slate-400 hover:text-white"}
           `}
         >
           <FiLogIn className="text-xl" />
@@ -72,7 +76,7 @@ const MobileBottomNav = () => {
       ) : (
         <button
           onClick={handleLogout}
-          className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors text-text-secondary hover:text-red-500"
+          className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors text-slate-400 hover:text-rose-400"
         >
           <FiLogOut className="text-xl" />
           <span className="text-[10px] font-medium tracking-wide">Logout</span>

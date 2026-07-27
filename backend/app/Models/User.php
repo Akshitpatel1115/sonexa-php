@@ -10,15 +10,24 @@ class User extends Model implements AuthenticatableContract
     protected $connection = 'mongodb';
     protected $table = 'users';
     protected $fillable = [
-        'username', 'email', 'password', 'role', 'status',
-        'resetPasswordOTP', 'resetPasswordOTPExpiresAt', 'resetPasswordResendAvailableAt', 'resetPasswordVerified',
-        'loginAttempts', 'resetPasswordOtpAttempts', 'authBlock'
+        'username', 'email', 'password', 'role', 'status', 'avatar', 'theme',
+        'email_verified_at', 'last_login_at'
     ];
-    protected $hidden = ['password', 'resetPasswordOTP'];
+    protected $hidden = ['password'];
     protected $appends = ['_id'];
 
     public function get_IdAttribute()
     {
         return (string)$this->attributes['_id'];
+    }
+
+    public function authSecurity()
+    {
+        return $this->hasOne(AuthSecurity::class);
+    }
+
+    public function emailOtps()
+    {
+        return $this->hasMany(EmailOtp::class);
     }
 }

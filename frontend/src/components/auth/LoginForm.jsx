@@ -68,11 +68,11 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-5 shadow-2xl">
+    <div className="w-full max-w-lg rounded-3xl border border-white/5 glass-panel p-6 sm:p-8 shadow-2xl relative overflow-hidden">
       {/* Heading */}
       <div className="mb-6 text-center">
         <div className="mb-4 flex justify-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl font-bold text-white">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#6C63FF] to-[#8B5CF6] text-2xl font-bold text-white shadow-xl shadow-[#6C63FF]/30">
             ♫
           </div>
         </div>

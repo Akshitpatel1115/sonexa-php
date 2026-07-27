@@ -20,6 +20,8 @@ Route::middleware([CheckAuthBlock::class])->group(function () {
 });
 
 Route::middleware([AuthUser::class, 'throttle:api.general'])->group(function () {
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 });
 

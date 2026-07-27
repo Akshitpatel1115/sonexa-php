@@ -10,6 +10,7 @@ export const PlayerProvider = ({ children }) => {
   const [currentSong, setCurrentSong] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [queue, setQueue] = useState([]);
+  const [isFullscreenPlayerOpen, setIsFullscreenPlayerOpen] = useState(false);
 
   const playSong = (song, newQueue = []) => {
     setCurrentSong(song);
@@ -59,7 +60,9 @@ export const PlayerProvider = ({ children }) => {
     togglePlay,
     stopSong,
     setIsPlaying,
-  }), [currentSong, isPlaying, queue]);
+    isFullscreenPlayerOpen,
+    setIsFullscreenPlayerOpen,
+  }), [currentSong, isPlaying, queue, isFullscreenPlayerOpen]);
 
   return (
     <PlayerContext.Provider value={contextValue}>

@@ -8,6 +8,7 @@ import RoleSelector from "./RoleSelector";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
+import { AVATARS } from "../../utils/avatars";
 
 const RegisterForm = () => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,7 @@ const RegisterForm = () => {
     password: "",
     confirmPassword: "",
     role: "user",
+    avatar: AVATARS[0].id,
   });
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -164,7 +166,7 @@ const RegisterForm = () => {
 
   if (isOtpStep) {
     return (
-      <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-5 shadow-2xl">
+      <div className="w-full max-w-lg rounded-3xl border border-white/5 glass-panel p-6 sm:p-8 shadow-2xl relative overflow-hidden">
         <div className="mb-6 text-center">
           <h1 className="text-3xl font-bold text-white">Verify Email</h1>
           <p className="mt-2 text-gray-400">
@@ -217,7 +219,7 @@ const RegisterForm = () => {
   }
 
   return (
-    <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-5 shadow-2xl">
+    <div className="w-full max-w-lg rounded-3xl border border-white/5 glass-panel p-6 sm:p-8 shadow-2xl relative overflow-hidden">
       {/* Heading */}
       <div className="mb-6 text-center">
     
@@ -232,6 +234,39 @@ const RegisterForm = () => {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Predefined Avatar Selector - FIRST PLACE in Form, Grid layout */}
+        <div className="flex flex-col gap-2 w-full">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between">
+            <span>Choose Your Avatar</span>
+            <span className="text-[10px] text-[#6C63FF] font-semibold">Step 1 of Registration</span>
+          </label>
+          <div className="grid grid-cols-5 gap-2 sm:gap-2.5 w-full p-2.5 rounded-2xl bg-white/5 border border-white/5">
+            {AVATARS.map((avatar) => {
+              const isSelected = formData.avatar === avatar.id;
+              return (
+                <button
+                  type="button"
+                  key={avatar.id}
+                  onClick={() => setFormData((prev) => ({ ...prev, avatar: avatar.id }))}
+                  className={`relative aspect-square rounded-xl overflow-hidden transition-all duration-300 cursor-pointer ${
+                    isSelected
+                      ? "ring-2 ring-[#6C63FF] ring-offset-2 ring-offset-[#121218] scale-105 shadow-lg shadow-[#6C63FF]/40 z-10"
+                      : "opacity-60 hover:opacity-100 hover:scale-105 border border-white/5"
+                  }`}
+                  title={avatar.label}
+                >
+                  <img src={avatar.src} alt={avatar.label} className="w-full h-full object-cover" />
+                  {isSelected && (
+                    <div className="absolute inset-0 bg-[#6C63FF]/30 flex items-center justify-center">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#6C63FF] shadow-sm"></span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <Input
           label="Username"
           name="username"

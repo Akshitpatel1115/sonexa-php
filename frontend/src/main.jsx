@@ -7,15 +7,18 @@ import { AuthProvider } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
 import { PlayerProvider } from "./context/PlayerContext";
 import { ToastProvider } from "./context/ToastContext";
+import { ThemeProvider } from "./context/ThemeContext";
 
 createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <ToastProvider>
         <AdminAuthProvider>
           <AuthProvider>
-            <PlayerProvider>
-              <App />
-            </PlayerProvider>
+            <ThemeProvider>
+              <PlayerProvider>
+                <App />
+              </PlayerProvider>
+            </ThemeProvider>
           </AuthProvider>
         </AdminAuthProvider>
       </ToastProvider>

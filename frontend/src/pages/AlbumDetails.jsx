@@ -61,31 +61,32 @@ const AlbumDetails = () => {
   }
 
   return (
-    <div className="flex flex-col pb-8">
-      {/* Header Section */}
-      <div className="relative flex flex-col items-start gap-6 bg-gradient-to-b from-[#4a4a4a] to-[#121212] p-4 sm:flex-row sm:items-end sm:p-8 lg:p-10">
+    <div className="flex flex-col pb-12">
+      {/* Hero Header Section */}
+      <div className="relative flex flex-col items-start gap-6 glass-panel rounded-3xl p-6 sm:flex-row sm:items-end sm:p-8 lg:p-10 border border-white/5 overflow-hidden my-4 mx-4 sm:mx-8 lg:mx-10">
+        <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#6C63FF]/30 rounded-full blur-3xl pointer-events-none" />
         
-        {/* Album Icon Placeholder */}
-        <div className="h-48 w-48 shrink-0 flex items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-surface-hover to-background shadow-2xl sm:h-56 sm:w-56 md:h-64 md:w-64 border border-border">
-          <FiDisc className="text-8xl text-text-secondary/50" />
+        {/* Album Icon Artwork Placeholder */}
+        <div className="h-44 w-44 sm:h-52 sm:w-52 md:h-60 md:w-60 shrink-0 flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-black/40 border border-white/5 shadow-2xl z-10">
+          <FiDisc className="text-7xl text-slate-400" />
         </div>
 
         {/* Album Info */}
-        <div className="flex flex-col justify-end">
-          <span className="hidden text-sm font-medium text-white sm:block uppercase tracking-wider">Album</span>
-          <h1 className="mt-2 text-4xl font-extrabold text-white sm:text-5xl md:text-6xl lg:text-7xl truncate tracking-tighter">
+        <div className="flex flex-col justify-end z-10">
+          <span className="text-xs font-bold text-[#6C63FF] uppercase tracking-widest">Album Collection</span>
+          <h1 className="mt-2 text-3xl font-black text-white sm:text-5xl md:text-6xl truncate tracking-tight">
             {album.title}
           </h1>
-          <div className="mt-4 flex items-center gap-2 text-sm font-medium text-white">
-            <span className="font-bold hover:underline cursor-pointer">{album.artist?.username || "Unknown Artist"}</span>
-            <span className="text-text-secondary">•</span>
-            <span className="text-text-secondary">{album.musics?.length || 0} songs</span>
+          <div className="mt-4 flex items-center gap-2.5 text-xs sm:text-sm font-semibold text-slate-300">
+            <span className="text-white font-bold hover:underline cursor-pointer">{album.artist?.username || "Unknown Artist"}</span>
+            <span className="text-slate-500">•</span>
+            <span className="px-2.5 py-0.5 rounded-full bg-white/10 border border-white/5 text-slate-300">{album.musics?.length || 0} songs</span>
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-6 px-4 py-6 sm:px-8 lg:px-10">
+      <div className="flex items-center gap-6 px-4 py-4 sm:px-8 lg:px-10">
         <button 
           onClick={() => {
             if (album.musics?.length > 0) {
@@ -96,23 +97,23 @@ const AlbumDetails = () => {
               playSong(formattedQueue[0], formattedQueue);
             }
           }}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-black transition-transform hover:scale-105 active:scale-95 shadow-lg hover:bg-primary-hover"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#6C63FF] hover:bg-[#8B5CF6] text-white transition-transform hover:scale-105 active:scale-95 shadow-xl shadow-[#6C63FF]/50 border border-white/5 cursor-pointer"
         >
-          <FiPlay className="ml-1 text-2xl fill-black" />
+          <FiPlay className="ml-1 text-2xl fill-white" />
         </button>
 
         {user?.role === 'artist' && (user?._id === album.artist?._id || user?.id === album.artist?._id) && (
-          <div className="flex items-center gap-4 ml-auto sm:ml-0">
+          <div className="flex items-center gap-3 ml-auto sm:ml-0">
             <button
               onClick={() => navigate(`/album/edit/${album._id || album.id}`)}
-              className="flex items-center justify-center h-10 w-10 rounded-full border border-border text-text-secondary hover:text-white hover:border-white transition-colors"
+              className="flex items-center justify-center h-10 w-10 rounded-2xl glass-card text-slate-300 hover:text-white hover:border-[#6C63FF]/50 transition-colors"
               title="Edit Album"
             >
               <FiEdit2 className="text-lg" />
             </button>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center justify-center h-10 w-10 rounded-full border border-border text-text-secondary hover:text-red-500 hover:border-red-500 hover:bg-red-500/10 transition-colors"
+              className="flex items-center justify-center h-10 w-10 rounded-2xl glass-card text-slate-300 hover:text-rose-400 hover:border-rose-500/50 hover:bg-rose-500/10 transition-colors"
               title="Delete Album"
             >
               <FiTrash2 className="text-lg" />
@@ -122,14 +123,14 @@ const AlbumDetails = () => {
       </div>
 
       {/* Tracklist Table */}
-      <div className="px-4 sm:px-8 lg:px-10">
-        <div className="mb-4 grid grid-cols-[auto_1fr_auto] gap-4 border-b border-border/50 pb-2 text-sm font-medium text-text-secondary px-4">
+      <div className="px-4 sm:px-8 lg:px-10 mt-2">
+        <div className="mb-3 grid grid-cols-[auto_1fr_auto] gap-4 border-b border-white/5 pb-2 text-xs font-bold text-slate-400 uppercase tracking-wider px-4">
           <div className="w-8 text-center">#</div>
           <div>Title</div>
           <div className="pr-4">Actions</div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1.5">
           {album.musics.map((track, index) => {
             const isCurrentTrack = currentSong?._id === track._id;
             const isCurrentlyPlaying = isCurrentTrack && isPlaying;
@@ -149,36 +150,36 @@ const AlbumDetails = () => {
                     playSong(trackToPlay, formattedQueue);
                   }
                 }}
-                className={`group grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-md px-4 py-3 transition-colors cursor-pointer ${
-                  isCurrentTrack ? "bg-surface-hover/50" : "hover:bg-surface-hover"
+                className={`group grid grid-cols-[auto_1fr_auto] items-center gap-4 rounded-2xl px-4 py-3 transition-all duration-200 cursor-pointer border ${
+                  isCurrentTrack ? "bg-[#6C63FF]/15 border-[#6C63FF]/40 text-[#6C63FF]" : "border-transparent hover:bg-white/10 hover:border-white/5"
                 }`}
               >
                 {/* Index / Play Icon */}
                 <div className="w-8 text-center flex justify-center">
                   {isCurrentlyPlaying ? (
-                    <FiPause className="text-primary fill-primary" />
+                    <FiPause className="text-[#6C63FF] fill-current text-base" />
                   ) : isCurrentTrack ? (
-                    <FiPlay className="text-primary fill-primary" />
+                    <FiPlay className="text-[#6C63FF] fill-current text-base" />
                   ) : (
                     <>
-                      <span className="text-text-secondary group-hover:hidden">{index + 1}</span>
-                      <FiPlay className="hidden text-white group-hover:block fill-white" />
+                      <span className="text-slate-400 group-hover:hidden font-mono text-xs">{index + 1}</span>
+                      <FiPlay className="hidden text-white group-hover:block fill-white text-base" />
                     </>
                   )}
                 </div>
                 
                 {/* Title & Artist */}
                 <div className="flex flex-col overflow-hidden">
-                  <span className={`text-base font-normal truncate ${isCurrentTrack ? "text-primary" : "text-white"}`}>
+                  <span className={`text-sm font-bold truncate ${isCurrentTrack ? "text-[#6C63FF]" : "text-white"}`}>
                     {track.title}
                   </span>
-                  <span className="text-sm text-text-secondary hover:underline hover:text-white transition-colors truncate">
+                  <span className="text-xs text-slate-400 hover:underline hover:text-white transition-colors truncate mt-0.5">
                     {track.artist?.username || album.artist?.username || "Unknown Artist"}
                   </span>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-4 text-text-secondary pr-4">
+                <div className="flex items-center gap-4 text-slate-400 pr-4">
                   <FiHeart className="opacity-0 transition-opacity hover:text-white group-hover:opacity-100 hidden sm:block" />
                   <FiMoreHorizontal className="opacity-0 transition-opacity hover:text-white group-hover:opacity-100 hidden sm:block" />
                 </div>

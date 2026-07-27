@@ -6,6 +6,7 @@ import ArtistRoute from './routes/ArtistRoute';
 import PublicRoute from './routes/PublicRoute';
 import AdminRoute from './routes/AdminRoute';
 import Loader from "./components/common/Loader";
+import PageSkeleton from "./components/common/PageSkeleton";
 
 // Lazy load pages
 const Home = lazy(() => import("./pages/Home"));
@@ -17,6 +18,7 @@ const AlbumDetails = lazy(() => import("./pages/AlbumDetails"));
 const CreateAlbum = lazy(() => import("./pages/CreateAlbum"));
 const EditAlbum = lazy(() => import("./pages/EditAlbum"));
 const CreateMusic = lazy(() => import("./pages/CreateMusic"));
+const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages
@@ -29,7 +31,7 @@ const AdminAlbums = lazy(() => import("./pages/admin/AdminAlbums"));
 
 const App = () => {
   return (
-    <Suspense fallback={<div className="h-screen w-full flex items-center justify-center bg-background"><Loader /></div>}>
+    <Suspense fallback={<PageSkeleton />}>
       <Routes>
         {/* Public Routes (Only accessible when logged out) */}
         <Route element={<PublicRoute />}>
@@ -44,6 +46,7 @@ const App = () => {
             <Route path="/" element={<Home />} />
             <Route path="/album" element={<Albums />} />
             <Route path="/album/:id" element={<AlbumDetails />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           {/* Artist Routes */}

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FiMail, FiLock } from "react-icons/fi";
+import { FiMail, FiLock, FiX } from "react-icons/fi";
 
 import Input from "../common/Input";
 import Button from "../common/Button";
@@ -8,9 +8,9 @@ import PasswordStrengthMeter from "./PasswordStrengthMeter";
 import api from "../../api/axios";
 import { useToast } from "../../context/ToastContext";
 
-const ForgotPasswordForm = () => {
+const ForgotPasswordForm = ({ initialEmail = "", autoTrigger = false, onSuccess = null, onCancel = null }) => {
   const [step, setStep] = useState(1);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(initialEmail);
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,6 +20,14 @@ const ForgotPasswordForm = () => {
 
   const navigate = useNavigate();
   const toast = useToast();
+  const autoTriggeredRef = useRef(false);
+
+  useEffect(() => {
+    if (autoTrigger && initialEmail && step === 1 && !autoTriggeredRef.current) {
+      autoTriggeredRef.current = true;
+      handleRequestOtp();
+    }
+  }, [autoTrigger, initialEmail, step]);
 
   useEffect(() => {
     let interval;
@@ -105,8 +113,12 @@ const ForgotPasswordForm = () => {
     setIsLoading(true);
     try {
       await api.post("/auth/reset-password", { email, newPassword });
-      toast.success("Password reset successful! You can now login.");
-      navigate("/login");
+      toast.success("Password reset successful!");
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate("/login");
+      }
     } catch (error) {
       console.error(error);
       toast.error(error.response?.data?.message || "Failed to reset password.");
@@ -116,7 +128,17 @@ const ForgotPasswordForm = () => {
   };
 
   return (
-    <div className="w-full max-w-lg rounded-3xl border border-border bg-surface p-5 shadow-2xl">
+    <div className="w-full max-w-lg rounded-3xl border border-white/5 glass-panel p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      {onCancel && (
+        <button
+          type="button"
+          onClick={onCancel}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition cursor-pointer z-10"
+        >
+          <FiX className="w-5 h-5" />
+        </button>
+      )}
+
       <div className="mb-6 text-center">
         <h1 className="text-3xl font-bold text-white">Reset Password</h1>
         <p className="mt-2 text-text-secondary">
@@ -233,19 +255,23 @@ const ForgotPasswordForm = () => {
         </form>
       )}
 
-      <div className="my-6 flex items-center">
-        <div className="h-px flex-1 bg-border"></div>
-      </div>
+      {!autoTrigger && (
+        <>
+          <div className="my-6 flex items-center">
+            <div className="h-px flex-1 bg-border"></div>
+          </div>
 
-      <p className="text-center text-text-secondary">
-        Remembered your password?{" "}
-        <Link
-          to="/login"
-          className="font-semibold text-primary transition hover:text-primary-hover"
-        >
-          Login
-        </Link>
-      </p>
+          <p className="text-center text-text-secondary">
+            Remembered your password?{" "}
+            <Link
+              to="/login"
+              className="font-semibold text-primary transition hover:text-primary-hover"
+            >
+              Login
+            </Link>
+          </p>
+        </>
+      )}
     </div>
   );
 };

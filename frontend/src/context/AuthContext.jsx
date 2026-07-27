@@ -8,8 +8,15 @@ const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(() => getToken());
 
   const login = (userData, tokenData) => {
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", tokenData);
     setUser(userData);
     setToken(tokenData);
+  };
+
+  const updateUser = (newUserData) => {
+    localStorage.setItem("user", JSON.stringify(newUserData));
+    setUser(newUserData);
   };
 
   const signOut = () => {
@@ -24,6 +31,7 @@ const AuthProvider = ({ children }) => {
         user,
         token,
         login,
+        updateUser,
         signOut,
         isAuthenticated: !!token,
       }}

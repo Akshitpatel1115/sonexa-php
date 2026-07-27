@@ -1,9 +1,9 @@
 const Loader = ({ fullScreen = false }) => {
   const loaderContent = (
-    <div className="flex gap-2">
-      <div className="h-3 w-3 animate-bounce rounded-full bg-primary" style={{ animationDelay: "0s" }}></div>
-      <div className="h-3 w-3 animate-bounce rounded-full bg-primary" style={{ animationDelay: "0.2s" }}></div>
-      <div className="h-3 w-3 animate-bounce rounded-full bg-primary" style={{ animationDelay: "0.4s" }}></div>
+    <div className="flex items-center gap-2.5">
+      <div className="h-3.5 w-3.5 animate-bounce rounded-full bg-[#6C63FF] shadow-lg shadow-[#6C63FF]/50" style={{ animationDelay: "0s" }}></div>
+      <div className="h-3.5 w-3.5 animate-bounce rounded-full bg-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/50" style={{ animationDelay: "0.2s" }}></div>
+      <div className="h-3.5 w-3.5 animate-bounce rounded-full bg-cyan-400 shadow-lg shadow-cyan-400/50" style={{ animationDelay: "0.4s" }}></div>
     </div>
   );
 

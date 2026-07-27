@@ -19,33 +19,20 @@ class AdminDashboardController extends Controller
         $totalUsers = User::where('role', 'user')->count();
         
         $totalArtists = User::where('role', 'artist')->count();
-        // Since there is no "verified" vs "pending" artist in the current schema (just 'authBlock'),
-        // we'll count active artists vs blocked artists for now.
-
-        $now = Carbon::now();
-
-        $activeArtists = User::where('role', 'artist')->where(function($q) use ($now) {
-            $q->whereNull('authBlock.blockedUntil')
-              ->orWhere('authBlock.blockedUntil', '<', $now);
-        })->count();
-
-        $blockedArtists = User::where('role', 'artist')
-            ->whereNotNull('authBlock.blockedUntil')
-            ->where('authBlock.blockedUntil', '>=', $now)
-            ->count();
+        
+        $activeArtists = User::where('role', 'artist')->where('status', 'active')->count();
+        $pendingArtists = User::where('role', 'artist')->where('status', 'pending')->count();
 
         $totalSongs = Music::count();
         $totalAlbums = Album::count();
-
-        // Let's create an audit log for viewing dashboard (optional, maybe too noisy)
 
         return response()->json([
             'message' => 'Stats retrieved successfully',
             'stats' => [
                 'totalUsers' => $totalUsers,
                 'totalArtists' => $totalArtists,
-                'verifiedArtists' => $activeArtists, // using active for now
-                'pendingArtists' => $blockedArtists, // using blocked for now
+                'verifiedArtists' => $activeArtists,
+                'pendingArtists' => $pendingArtists,
                 'totalSongs' => $totalSongs,
                 'totalAlbums' => $totalAlbums,
             ]

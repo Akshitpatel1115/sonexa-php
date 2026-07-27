@@ -40,17 +40,25 @@ class AlbumController extends Controller
         } catch (\Exception $e) { return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500); }
     }
 
-    public function getAllAlbums()
+    public function getAllAlbums(Request $request)
     {
         try { 
-            $albums = Album::with('artistRef:username,email')->get();
-            $albums = $albums->map(function ($album) {
+            $limit = $request->query('limit', 20);
+            $albums = Album::with('artistRef:username,email')
+                ->select('_id', 'title', 'musics', 'artist', 'created_at')
+                ->orderBy('created_at', 'desc')
+                ->paginate((int) $limit);
+
+            $albums->getCollection()->transform(function ($album) {
                 $album->artist = $album->artistRef;
                 unset($album->artistRef);
                 return $album;
             });
+
             return response()->json(['message' => 'Albums fetch successfuly.', 'albums' => $albums], 200); 
-        } catch (\Exception $e) { return response()->json(['message' => 'Internal Server Error'], 500); }
+        } catch (\Exception $e) { 
+            return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500); 
+        }
     }
 
     public function getAlbum($albumId)

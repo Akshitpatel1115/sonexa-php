@@ -6,13 +6,14 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\AuditLog;
+use App\Models\AuthSecurity;
 use Carbon\Carbon;
 
 class AdminUserController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('role', 'user');
+        $query = User::with('authSecurity')->where('role', 'user');
 
         if ($request->has('search')) {
             $search = $request->search;
@@ -21,14 +22,20 @@ class AdminUserController extends Controller
 
         $users = $query->orderBy('created_at', 'desc')->paginate(20);
 
-        // Lazy cleanup of expired blocks
-        $now = Carbon::now();
+        // Map authBlock back for frontend compatibility
         foreach ($users as $user) {
-            if ($user->authBlock && isset($user->authBlock['blockedUntil'])) {
-                if (Carbon::parse($user->authBlock['blockedUntil'])->isPast()) {
+            if ($user->authSecurity && $user->authSecurity->auth_block_until) {
+                if (Carbon::parse($user->authSecurity->auth_block_until)->isPast()) {
+                    $user->authSecurity->auth_block_until = null;
+                    $user->authSecurity->save();
                     $user->authBlock = null;
-                    $user->save();
+                } else {
+                    $user->authBlock = [
+                        'blockedUntil' => $user->authSecurity->auth_block_until
+                    ];
                 }
+            } else {
+                $user->authBlock = null;
             }
         }
 
@@ -40,8 +47,16 @@ class AdminUserController extends Controller
 
     public function show($id)
     {
-        $user = User::where('_id', $id)->where('role', 'user')->first();
+        $user = User::with('authSecurity')->where('_id', $id)->where('role', 'user')->first();
         if (!$user) return response()->json(['message' => 'User not found'], 404);
+
+        if ($user->authSecurity && $user->authSecurity->auth_block_until && Carbon::parse($user->authSecurity->auth_block_until)->isFuture()) {
+            $user->authBlock = [
+                'blockedUntil' => $user->authSecurity->auth_block_until
+            ];
+        } else {
+            $user->authBlock = null;
+        }
 
         return response()->json([
             'message' => 'User retrieved successfully',
@@ -55,12 +70,9 @@ class AdminUserController extends Controller
         $user = User::where('_id', $id)->where('role', 'user')->first();
         if (!$user) return response()->json(['message' => 'User not found'], 404);
 
-        // Permanent block for admin
-        $user->authBlock = [
-            'blockedUntil' => Carbon::now()->addYears(100),
-            'reason' => 'Blocked by Administrator'
-        ];
-        $user->save();
+        $security = AuthSecurity::firstOrCreate(['user_id' => $user->_id], ['username' => $user->username]);
+        $security->auth_block_until = Carbon::now()->addYears(100);
+        $security->save();
 
         AuditLog::create([
             'admin_id' => $admin->_id,
@@ -78,8 +90,11 @@ class AdminUserController extends Controller
         $user = User::where('_id', $id)->where('role', 'user')->first();
         if (!$user) return response()->json(['message' => 'User not found'], 404);
 
-        $user->authBlock = null;
-        $user->save();
+        $security = AuthSecurity::where('user_id', $user->_id)->first();
+        if ($security) {
+            $security->auth_block_until = null;
+            $security->save();
+        }
 
         AuditLog::create([
             'admin_id' => $admin->_id,
@@ -96,6 +111,10 @@ class AdminUserController extends Controller
         $admin = $request->get('admin');
         $user = User::where('_id', $id)->where('role', 'user')->first();
         if (!$user) return response()->json(['message' => 'User not found'], 404);
+
+        // Delete related models manually just in case
+        AuthSecurity::where('user_id', $user->_id)->delete();
+        \App\Models\EmailOtp::where('user_id', $user->_id)->delete();
 
         $user->delete();
 

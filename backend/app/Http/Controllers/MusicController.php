@@ -57,14 +57,16 @@ class MusicController extends Controller
         }
     }
 
-    public function getAllMusics()
+    public function getAllMusics(Request $request)
     {
         try { 
-            // In Node it fetched all and populated artist (username email)
-            $musics = Music::with('artistRef:username,email')->get();
-            // To match exactly, we want "artist" to contain the populated object, but Eloquent puts it in artistRef
-            // So we manually map it.
-            $musics = $musics->map(function ($music) {
+            $limit = $request->query('limit', 20);
+            $musics = Music::with('artistRef:username,email')
+                ->select('_id', 'title', 'uri', 'artist', 'created_at')
+                ->orderBy('created_at', 'desc')
+                ->paginate((int) $limit);
+
+            $musics->getCollection()->transform(function ($music) {
                 $music->artist = $music->artistRef;
                 unset($music->artistRef);
                 return $music;
@@ -75,7 +77,7 @@ class MusicController extends Controller
                 'musics' => $musics
             ], 200); 
         } catch (\Exception $e) { 
-            return response()->json(['message' => 'Internal Server Error'], 500); 
+            return response()->json(['message' => 'Internal Server Error', 'error' => $e->getMessage()], 500); 
         }
     }
 

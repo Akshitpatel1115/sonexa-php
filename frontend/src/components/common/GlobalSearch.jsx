@@ -3,6 +3,7 @@ import { FiSearch, FiMusic, FiDisc, FiUser, FiX, FiLoader } from "react-icons/fi
 import { Link } from "react-router-dom";
 import { globalSearch } from "../../services/musicService";
 import { usePlayer } from "../../context/PlayerContext";
+import { useDebounce } from "../../hooks/useDebounce";
 
 const GlobalSearch = () => {
   const [query, setQuery] = useState("");
@@ -23,46 +24,64 @@ const GlobalSearch = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Debounced search
+  const debouncedQuery = useDebounce(query, 600);
+
+  // Update searching state immediately on typing so UI shows loading
   useEffect(() => {
-    if (!query.trim()) {
+    if (query.trim()) {
+      setIsSearching(true);
+      setIsOpen(true);
+    } else {
       setResults({ music: [], albums: [], artists: [] });
       setIsSearching(false);
-      return;
+      setIsOpen(false);
     }
+  }, [query]);
 
-    setIsSearching(true);
-    setIsOpen(true);
+  // Actually search when debounced query changes
+  useEffect(() => {
+    if (!debouncedQuery.trim()) return;
 
-    const delayDebounceFn = setTimeout(async () => {
+    const controller = new AbortController();
+
+    const performSearch = async () => {
       try {
-        const response = await globalSearch(query);
+        const response = await globalSearch(debouncedQuery, controller.signal);
         if (response.success) {
           setResults(response.results);
         }
       } catch (error) {
+        if (error.name === 'CanceledError' || error.message === 'canceled') {
+          return; // Ignore canceled requests
+        }
         console.error("Search failed:", error);
         setResults({ music: [], albums: [], artists: [] });
       } finally {
-        setIsSearching(false);
+        if (!controller.signal.aborted) {
+          setIsSearching(false);
+        }
       }
-    }, 400);
+    };
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [query]);
+    performSearch();
+
+    return () => {
+      controller.abort();
+    };
+  }, [debouncedQuery]);
 
   const hasResults = results.music.length > 0 || results.albums.length > 0 || results.artists.length > 0;
 
   return (
     <div className="relative w-full max-w-md mx-4" ref={searchRef}>
-      <div className="relative flex items-center w-full h-10 rounded-full bg-surface hover:bg-surface-hover border border-border overflow-hidden transition-colors">
-        <div className="pl-3 pr-2 text-text-secondary">
-          <FiSearch className="text-lg" />
+      <div className="relative flex items-center w-full h-10 rounded-full glass-card hover:border-[#6C63FF]/50 border border-white/5 overflow-hidden transition-all shadow-md">
+        <div className="pl-3.5 pr-2 text-slate-400">
+          <FiSearch className="text-base" />
         </div>
         <input
           type="text"
           placeholder="Search for music, albums, or artists..."
-          className="flex-1 h-full bg-transparent border-none outline-none text-sm text-white placeholder:text-text-secondary pr-3"
+          className="flex-1 h-full bg-transparent border-none outline-none text-xs text-white placeholder:text-slate-400 pr-3"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => { if (query.trim()) setIsOpen(true); }}
@@ -70,7 +89,7 @@ const GlobalSearch = () => {
         {query && (
           <button 
             onClick={() => { setQuery(""); setIsOpen(false); }}
-            className="px-3 text-text-secondary hover:text-white"
+            className="px-3 text-slate-400 hover:text-white transition-colors"
           >
             <FiX />
           </button>
@@ -79,7 +98,7 @@ const GlobalSearch = () => {
 
       {/* Dropdown Overlay */}
       {isOpen && query.trim() && (
-        <div className="absolute top-12 left-0 w-full max-h-[70vh] overflow-y-auto bg-surface rounded-xl border border-border shadow-2xl z-50 p-2 scrollbar-thin">
+        <div className="absolute top-12 left-0 w-full max-h-[70vh] overflow-y-auto glass-panel rounded-2xl border border-white/5 shadow-2xl z-50 p-3 custom-scrollbar">
           
           {isSearching ? (
             <div className="flex flex-col items-center justify-center py-8 text-text-secondary gap-3">

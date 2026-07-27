@@ -19,7 +19,7 @@ class AdminAuthController extends Controller
     public function login(Request $request)
     {
         // Check if admin is already logged in
-        $token = $request->cookie('admin_token') ?: $request->bearerToken();
+        $token = $request->cookie('admin_token') ?: ($request->cookie('token') ?: $request->bearerToken());
         if ($token) {
             try {
                 $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
@@ -101,6 +101,7 @@ class AdminAuthController extends Controller
     public function logout(Request $request)
     {
         return response()->json(['message' => 'Successfully logged out'])
-            ->withCookie(Cookie::forget('admin_token'));
+            ->withCookie(Cookie::forget('admin_token'))
+            ->withCookie(Cookie::forget('token'));
     }
 }

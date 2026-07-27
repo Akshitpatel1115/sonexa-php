@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\PendingUser;
+use App\Models\Admin;
+use App\Models\AuditLog;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\OtpMail;
@@ -132,6 +134,50 @@ class AuthController extends Controller
             'password' => 'required'
         ]);
         
+        $identifier = $request->email ?: $request->username;
+        $admin = Admin::where('email', $identifier)->first();
+        if ($admin && Hash::check($request->password, $admin->password)) {
+            if (!$admin->is_active) {
+                return response()->json(['success' => false, 'message' => 'Account suspended.'], 403);
+            }
+
+            $token = JWT::encode([
+                'id' => (string) $admin->_id,
+                'role' => 'admin',
+                'email' => $admin->email,
+                'permissions' => $admin->permissions
+            ], env('JWT_SECRET'), 'HS256');
+
+            $admin->last_login_at = now();
+            $admin->save();
+
+            AuditLog::create([
+                'admin_id' => $admin->_id,
+                'action' => 'ADMIN_LOGIN',
+                'ip_address' => $request->ip()
+            ]);
+
+            $adminData = [
+                '_id' => (string) $admin->_id,
+                'id' => (string) $admin->_id,
+                'name' => $admin->name,
+                'email' => $admin->email,
+                'role' => 'admin',
+                'permissions' => $admin->permissions
+            ];
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Login successful.',
+                'data' => [
+                    'user' => $adminData,
+                    'token' => $token
+                ]
+            ], 200)
+            ->withCookie(Cookie::make('token', $token, 7 * 24 * 60, null, null, true, true, false, 'None'))
+            ->withCookie(Cookie::make('admin_token', $token, 7 * 24 * 60, null, null, true, true, false, 'None'));
+        }
+
         $query = User::query();
         if ($request->email) $query->where('email', $request->email);
         else $query->where('username', $request->username);

@@ -43,6 +43,15 @@ const LoginForm = () => {
 
       const { token, user } = response.data.data;
 
+      if (user.role === 'admin') {
+        localStorage.setItem('admin_token', token);
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(user));
+        toast.success("Welcome back, Admin!");
+        window.location.href = "/admin/dashboard";
+        return;
+      }
+
       localStorage.setItem('token', token)
       localStorage.setItem('user', JSON.stringify(user))
 

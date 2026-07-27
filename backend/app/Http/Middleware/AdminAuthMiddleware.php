@@ -18,7 +18,7 @@ class AdminAuthMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $token = $request->cookie('admin_token') ?: $request->bearerToken();
+        $token = $request->cookie('admin_token') ?: ($request->cookie('token') ?: $request->bearerToken());
         if (!$token) {
             return response()->json(['message' => 'Please login to access this route.'], 401);
         }

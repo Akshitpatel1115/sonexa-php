@@ -9,6 +9,9 @@ const ArtistRoute = () => {
   }
 
   if (user?.role !== "artist") {
+    if (user?.role === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 

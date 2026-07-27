@@ -18,6 +18,9 @@ class AuthUser
         }
         try {
             $decoded = JWT::decode($token, new Key(env('JWT_SECRET'), 'HS256'));
+            if (isset($decoded->role) && $decoded->role === 'admin') {
+                return response()->json(['success' => false, 'message' => 'Admins cannot access user public APIs.'], 403);
+            }
             $user = User::find($decoded->id);
             if (!$user) {
                 return response()->json(['success' => false, 'message' => 'User not found.'], 401);

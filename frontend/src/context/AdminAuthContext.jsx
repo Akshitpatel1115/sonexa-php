@@ -5,7 +5,17 @@ const AdminAuthContext = createContext();
 
 const AdminAuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem("admin_token"));
+  const [token, setToken] = useState(() => {
+    const adminToken = localStorage.getItem("admin_token");
+    if (adminToken) return adminToken;
+    try {
+      const user = JSON.parse(localStorage.getItem("user") || "null");
+      if (user && user.role === "admin") {
+        return localStorage.getItem("token");
+      }
+    } catch (e) {}
+    return null;
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -42,6 +52,8 @@ const AdminAuthProvider = ({ children }) => {
       setToken(null);
       setAdmin(null);
       localStorage.removeItem("admin_token");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
     }
   };
 

@@ -20,7 +20,6 @@ const CreateMusic = lazy(() => import("./pages/CreateMusic"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Admin pages
-const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
 const AdminLayout = lazy(() => import("./components/admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
@@ -56,7 +55,6 @@ const App = () => {
         </Route>
 
         {/* Isolated Admin Routes */}
-        <Route path="/admin/login" element={<AdminLogin />} />
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

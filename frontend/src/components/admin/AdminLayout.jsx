@@ -8,7 +8,7 @@ const AdminLayout = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigate("/");
+    window.location.href = "/login";
   };
 
   return (

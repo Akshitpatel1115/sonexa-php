@@ -2,9 +2,13 @@ import { Navigate, Outlet } from "react-router-dom";
 import useAuth from "../context/useAuth";
 
 const PublicRoute = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
+  const token = localStorage.getItem("token") || localStorage.getItem("admin_token");
 
-  if (isAuthenticated) {
+  if (isAuthenticated && token) {
+    if (user?.role === "admin") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 

@@ -1,8 +1,8 @@
 import { useContext } from "react";
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { AdminAuthContext } from "../context/AdminAuthContext";
 import Loader from "../components/common/Loader";
-import NotFound from "../pages/NotFound";
+import { getUser } from "../utils/auth";
 
 const AdminRoute = () => {
   const { isAuthenticated, loading } = useContext(AdminAuthContext);
@@ -15,9 +15,14 @@ const AdminRoute = () => {
     );
   }
 
-  // Strictly enforce security: If not authenticated, render a 404 to mask the route's existence.
-  if (!isAuthenticated) {
-    return <NotFound />;
+  const adminToken = localStorage.getItem("admin_token") || (getUser()?.role === "admin" ? localStorage.getItem("token") : null);
+
+  if (!isAuthenticated || !adminToken) {
+    const user = getUser();
+    if (user && user.role !== "admin") {
+      return <Navigate to="/" replace />;
+    }
+    return <Navigate to="/login" replace />;
   }
 
   return <Outlet />;

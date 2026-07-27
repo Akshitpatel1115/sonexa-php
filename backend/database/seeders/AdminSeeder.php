@@ -13,21 +13,20 @@ class AdminSeeder extends Seeder
      */
     public function run(): void
     {
-        $adminEmail = 'admin@sonexa.com';
+        $adminEmail = env('ADMIN_EMAIL', 'admin@example.com');
+        $adminPassword = env('ADMIN_PASSWORD', 'secret123');
 
-        if (Admin::where('email', $adminEmail)->exists()) {
-            $this->command->info('Master admin already exists!');
-            return;
-        }
+        Admin::updateOrCreate(
+            ['email' => $adminEmail],
+            [
+                'name' => 'Super Admin',
+                'email' => $adminEmail,
+                'password' => Hash::make($adminPassword),
+                'permissions' => ['*'], // Master wildcard permission
+                'is_active' => true,
+            ]
+        );
 
-        Admin::create([
-            'name' => 'Super Admin',
-            'email' => $adminEmail,
-            'password' => Hash::make('Admin@123'),
-            'permissions' => ['*'], // Master wildcard permission
-            'is_active' => true,
-        ]);
-
-        $this->command->info("Master admin created! Email: {$adminEmail}, Password: Admin@123");
+        $this->command->info("Master admin seeded securely from environment variables!");
     }
 }

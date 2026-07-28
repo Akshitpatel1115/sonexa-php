@@ -62,14 +62,16 @@ const Navbar = React.memo(() => {
 
       <header className="sticky top-4 z-40 mx-4 md:mx-6 my-4 flex h-14 sm:h-20 items-center justify-between rounded-3xl glass-panel border border-white/5 px-4 md:px-7 shadow-2xl backdrop-blur-2xl transition-all duration-300">
       {/* Left Greeting */}
-      <div className="flex-1 flex items-center gap-3">
+      <div className="flex-1 flex items-center gap-3 min-w-0">
         {/* Mobile Logo */}
         <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/5 md:hidden">
           <img src={logoImg} alt="SONEXA Logo" className="h-full w-full object-cover" />
         </div>
-        <div className="flex flex-col">
-          <h1 className="text-lg md:text-2xl font-extrabold text-white tracking-tight flex items-center gap-1.5">
-            <span>
+        
+        {/* Desktop Greeting */}
+        <div className="hidden sm:flex flex-col min-w-0">
+          <h1 className="text-lg md:text-2xl font-extrabold text-white tracking-tight flex items-center gap-1.5 truncate">
+            <span className="truncate">
               {getGreeting()}, <span className="gradient-text">{user?.username || 'Guest'}</span>
             </span>
           </h1>
@@ -113,7 +115,7 @@ const Navbar = React.memo(() => {
 
             <Link
               to="/profile"
-              className="flex items-center gap-2 rounded-full glass-card hover:bg-white/20 p-1.5 pr-3 transition-all shadow-md cursor-pointer group"
+              className="flex items-center gap-2 rounded-full glass-card hover:bg-white/20 p-1.5 sm:pr-3 transition-all shadow-md cursor-pointer group"
               title="View Profile"
             >
               <img
@@ -153,6 +155,18 @@ const Navbar = React.memo(() => {
         onCancel={() => setShowLogoutDialog(false)}
       />
     </header>
+
+    {/* Mobile Greeting (Displayed below navbar on small screens) */}
+    <div className="sm:hidden px-6 mb-6 mt-1">
+      <h1 className="text-2xl font-extrabold text-white tracking-tight flex flex-wrap items-center gap-1.5">
+        <span>{getGreeting()},</span>
+        <span className="gradient-text">{user?.username || 'Guest'}</span>
+      </h1>
+      <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-1">
+        <span>Let the music take you away</span>
+        <span className="inline-block animate-bounce">🎵</span>
+      </p>
+    </div>
     </>
   );
 });

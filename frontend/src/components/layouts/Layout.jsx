@@ -44,10 +44,10 @@ const Layout = ({ children }) => {
         {!hideSidebar && <Sidebar />}
         
         {/* Main Content Area */}
-        <main className={`relative flex flex-1 flex-col min-w-0 overflow-hidden ${paddingClass}`}>
+        <main className="relative flex flex-1 flex-col min-w-0 overflow-y-auto custom-scrollbar">
           {!hideNavbar && <Navbar />}
           
-          <div className="flex-1 p-4 lg:p-8 overflow-y-auto custom-scrollbar">
+          <div className={`flex-1 p-4 lg:p-8 ${paddingClass}`}>
             {<Outlet />}
           </div>
         </main>

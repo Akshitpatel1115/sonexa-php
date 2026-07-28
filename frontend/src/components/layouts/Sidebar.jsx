@@ -1,11 +1,11 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import logoImg from "../../assets/sonexa-logo.png";
 import { FiHome, FiDisc, FiPlusSquare, FiMusic, FiLogIn, FiUserPlus, FiUser, FiUsers } from "react-icons/fi";
 import useAuth from "../../context/useAuth";
 import { getAvatarSrc } from "../../utils/avatars";
 
-const Sidebar = () => {
+const Sidebar = React.memo(() => {
   const { user, isAuthenticated } = useAuth();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -13,6 +13,7 @@ const Sidebar = () => {
 
   const navLinks = [
     { name: "Home", path: "/", icon: FiHome },
+    { name: "Musics", path: "/musics", icon: FiMusic },
     { name: "Albums", path: "/album", icon: FiDisc },
   ];
 
@@ -22,7 +23,7 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className={`hidden md:flex relative h-[calc(100vh-2rem)] my-4 ml-4 transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-20 lg:w-64'} shrink-0 z-20`}>
+    <div className={`hidden md:flex relative h-[calc(100vh-2rem)] my-4 ml-4 transition-[width] duration-300 ease-out will-change-[width] ${isCollapsed ? 'w-20' : 'w-20 lg:w-64'} shrink-0 z-20`}>
       <aside className="flex flex-col w-full h-full glass-panel rounded-3xl p-4 gap-4 select-none relative overflow-hidden border border-white/5">
       {/* Glow background accent inside sidebar */}
       <div className="absolute -top-20 -left-20 w-40 h-40 bg-[#6C63FF]/30 rounded-full blur-3xl pointer-events-none" />
@@ -179,6 +180,6 @@ const Sidebar = () => {
       </aside>
     </div>
   );
-};
+});
 
 export default Sidebar;

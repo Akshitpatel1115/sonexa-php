@@ -20,7 +20,8 @@ class AdminUserController extends Controller
             $query->where('username', 'like', "%{$search}%");
         }
 
-        $users = $query->orderBy('created_at', 'desc')->paginate(20);
+        $limit = $request->query('limit', 10);
+        $users = $query->orderBy('created_at', 'desc')->paginate((int) $limit);
 
         // Map authBlock back for frontend compatibility
         foreach ($users as $user) {

@@ -50,13 +50,27 @@ class SearchController extends Controller
         // Limit results to maintain high performance
         $limit = 10;
 
-        $music = Music::where('title', 'regexp', $regex)
+        $music = Music::with('artistRef:username')
+            ->where('title', 'regexp', $regex)
             ->limit($limit)
             ->get();
             
-        $albums = Album::where('title', 'regexp', $regex)
+        $music->transform(function ($m) {
+            $m->artist = $m->artistRef ? $m->artistRef->username : 'Unknown';
+            unset($m->artistRef);
+            return $m;
+        });
+            
+        $albums = Album::with('artistRef:username')
+            ->where('title', 'regexp', $regex)
             ->limit($limit)
             ->get();
+            
+        $albums->transform(function ($a) {
+            $a->artist = $a->artistRef ? $a->artistRef->username : 'Unknown';
+            unset($a->artistRef);
+            return $a;
+        });
             
         $artists = User::where('role', 'artist')
             ->where('username', 'regexp', $regex)

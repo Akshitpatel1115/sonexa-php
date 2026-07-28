@@ -11,6 +11,7 @@ const Layout = ({ children }) => {
   const { effectiveTheme } = useTheme();
   const location = useLocation();
   const hideNavbar = ['/profile', '/create-album', '/createMusic'].includes(location.pathname);
+  const hideSidebar = ['/profile'].includes(location.pathname);
 
   const isLight = effectiveTheme === 'light';
 
@@ -40,7 +41,7 @@ const Layout = ({ children }) => {
 
       {/* Top Section: Sidebar + Main Content */}
       <div className="flex flex-1 overflow-hidden z-10 relative">
-        <Sidebar />
+        {!hideSidebar && <Sidebar />}
         
         {/* Main Content Area */}
         <main className={`relative flex flex-1 flex-col min-w-0 overflow-hidden ${paddingClass}`}>

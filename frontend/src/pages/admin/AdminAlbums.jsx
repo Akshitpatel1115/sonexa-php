@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import { getAdminAlbums, deleteAdminAlbum } from "../../services/adminService";
+import AdminPagination from "../../components/common/AdminPagination";
 
 
 const AdminAlbums = () => {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchAlbums = async (q = "") => {
+  const fetchAlbums = async (q = "", pageNum = 1) => {
     setLoading(true);
     try {
-      const data = await getAdminAlbums(q);
+      const data = await getAdminAlbums(q, pageNum);
       setAlbums(data.data || data); 
+      setTotalPages(data.last_page || 1);
+      setPage(data.current_page || 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -21,7 +26,7 @@ const AdminAlbums = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchAlbums(search);
+      fetchAlbums(search, 1);
     }, 300);
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
@@ -30,7 +35,7 @@ const AdminAlbums = () => {
     if (confirm("DANGER: Are you sure you want to delete this album?")) {
       try {
         await deleteAdminAlbum(id);
-        fetchAlbums(search);
+        fetchAlbums(search, page);
       } catch (err) {
         alert("Action failed");
       }
@@ -59,7 +64,6 @@ const AdminAlbums = () => {
         <table className="w-full text-left text-xs text-slate-300">
           <thead className="bg-white/5 text-slate-400 font-bold uppercase tracking-wider border-b border-white/5">
             <tr>
-              <th className="px-6 py-4">ID</th>
               <th className="px-6 py-4">Title</th>
               <th className="px-6 py-4">Artist</th>
               <th className="px-6 py-4">Tracks</th>
@@ -68,13 +72,12 @@ const AdminAlbums = () => {
           </thead>
           <tbody className="divide-y divide-white/10">
             {loading ? (
-              <tr><td colSpan="5" className="text-center py-12 text-slate-400 animate-pulse font-semibold">Loading albums...</td></tr>
+              <tr><td colSpan="4" className="text-center py-12 text-slate-400 animate-pulse font-semibold">Loading albums...</td></tr>
             ) : albums.length === 0 ? (
-              <tr><td colSpan="5" className="text-center py-12 text-slate-500 font-semibold">No albums found.</td></tr>
+              <tr><td colSpan="4" className="text-center py-12 text-slate-500 font-semibold">No albums found.</td></tr>
             ) : (
               albums.map(album => (
                 <tr key={album._id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-4 font-mono text-slate-500 text-[11px] truncate max-w-[100px]">{album._id}</td>
                   <td className="px-6 py-4 font-bold text-white">{album.title}</td>
                   <td className="px-6 py-4 text-[#6C63FF] font-semibold">{album.artist_ref?.username || 'Unknown'}</td>
                   <td className="px-6 py-4">
@@ -96,6 +99,14 @@ const AdminAlbums = () => {
           </tbody>
         </table>
       </div>
+      
+      {!loading && albums.length > 0 && (
+        <AdminPagination 
+          currentPage={page} 
+          totalPages={totalPages} 
+          onPageChange={(newPage) => fetchAlbums(search, newPage)} 
+        />
+      )}
     </div>
   );
 };

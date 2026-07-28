@@ -16,4 +16,7 @@ export const logout = () => {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   localStorage.removeItem("admin_token");
+  localStorage.removeItem("sonexa_recent_tracks");
+  localStorage.removeItem("sonexa_playback_history");
+  localStorage.removeItem("sonexa_recent_searches");
 };

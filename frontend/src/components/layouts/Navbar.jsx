@@ -1,6 +1,7 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../context/useAuth";
+import { usePlayer } from "../../context/PlayerContext";
 import api from "../../api/axios";
 import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
 import ConfirmDialog from "../common/ConfirmDialog";
@@ -9,8 +10,9 @@ import logoImg from "../../assets/sonexa-logo.png";
 import { getAvatarSrc } from "../../utils/avatars";
 import { useTheme } from "../../context/ThemeContext";
 
-const Navbar = () => {
+const Navbar = React.memo(() => {
   const { signOut, user } = useAuth();
+  const { clearHistory } = usePlayer();
   const navigate = useNavigate();
   const { effectiveTheme, changeTheme } = useTheme();
 
@@ -19,6 +21,7 @@ const Navbar = () => {
   const confirmLogout = async () => {
     try {
       await api.post("/auth/logout");
+      clearHistory();
       signOut();
       navigate("/login");
     } catch (err) {
@@ -124,6 +127,6 @@ const Navbar = () => {
       />
     </header>
   );
-};
+});
 
 export default Navbar;

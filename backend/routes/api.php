@@ -14,10 +14,12 @@ Route::middleware([CheckAuthBlock::class])->group(function () {
     Route::post('/auth/verify-email', [AuthController::class, 'verifyEmail'])->middleware('throttle:auth.verify_otp');
     Route::post('/auth/resend-otp', [AuthController::class, 'resendOtp'])->middleware('throttle:auth.resend_otp');
     Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:auth.login');
-    Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth.forgot_password');
-    Route::post('/auth/verify-reset-otp', [AuthController::class, 'verifyResetOtp'])->middleware('throttle:auth.verify_otp');
-    Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 });
+
+// These routes should be accessible by both guests (forgot password) and authenticated users (reset from profile)
+Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword'])->middleware('throttle:auth.forgot_password');
+Route::post('/auth/verify-reset-otp', [AuthController::class, 'verifyResetOtp'])->middleware('throttle:auth.verify_otp');
+Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::middleware([AuthUser::class, 'throttle:api.general'])->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);

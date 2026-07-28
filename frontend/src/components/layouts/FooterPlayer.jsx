@@ -272,7 +272,7 @@ const FooterPlayer = () => {
           className="group relative h-1.5 w-24 cursor-pointer rounded-full bg-surface-hover"
         >
           <div 
-            className="absolute top-0 left-0 h-full rounded-full bg-white group-hover:bg-primary transition-all duration-100"
+            className="absolute top-0 left-0 h-full rounded-full bg-primary group-hover:bg-primary-hover transition-all duration-100"
             style={{ width: `${volume * 100}%` }}
           ></div>
           <div 

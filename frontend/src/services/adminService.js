@@ -20,8 +20,8 @@ export const getDashboardStats = async () => {
   return response.data.stats;
 };
 
-export const getAdminUsers = async (search = "") => {
-  const response = await adminApi.get(`/admin/users?search=${search}`);
+export const getAdminUsers = async (search = "", page = 1) => {
+  const response = await adminApi.get(`/admin/users?search=${search}&page=${page}&limit=10`);
   return response.data.users;
 };
 
@@ -40,8 +40,8 @@ export const deleteUser = async (id) => {
   return response.data;
 };
 
-export const getAdminArtists = async (search = "") => {
-  const response = await adminApi.get(`/admin/artists?search=${search}`);
+export const getAdminArtists = async (search = "", page = 1) => {
+  const response = await adminApi.get(`/admin/artists?search=${search}&page=${page}&limit=10`);
   return response.data.artists;
 };
 
@@ -60,8 +60,8 @@ export const rejectArtist = async (id) => {
   return response.data;
 };
 
-export const getAdminMusic = async (search = "") => {
-  const response = await adminApi.get(`/admin/music?search=${search}`);
+export const getAdminMusic = async (search = "", page = 1) => {
+  const response = await adminApi.get(`/admin/music?search=${search}&page=${page}&limit=10`);
   return response.data.musics;
 };
 
@@ -70,8 +70,8 @@ export const deleteAdminMusic = async (id) => {
   return response.data;
 };
 
-export const getAdminAlbums = async (search = "") => {
-  const response = await adminApi.get(`/admin/albums?search=${search}`);
+export const getAdminAlbums = async (search = "", page = 1) => {
+  const response = await adminApi.get(`/admin/albums?search=${search}&page=${page}&limit=10`);
   return response.data.albums;
 };
 

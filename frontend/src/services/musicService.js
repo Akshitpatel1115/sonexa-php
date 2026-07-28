@@ -1,6 +1,6 @@
 import api from "../api/axios";
 
-export const getAllMusic = async (page = 1, limit = 20) => {
+export const getAllMusic = async (page = 1, limit = 10) => {
   const response = await api.get(`/music?page=${page}&limit=${limit}`);
   if (Array.isArray(response.data.musics)) {
     return { data: response.data.musics, current_page: 1, last_page: 1 };
@@ -27,7 +27,7 @@ export const deleteMusic = async (id) => {
   return response.data;
 };
 
-export const getAllAlbums = async (page = 1, limit = 20) => {
+export const getAllAlbums = async (page = 1, limit = 10) => {
   const response = await api.get(`/album?page=${page}&limit=${limit}`);
   if (Array.isArray(response.data.albums)) {
     return { data: response.data.albums, current_page: 1, last_page: 1 };

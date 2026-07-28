@@ -1,20 +1,18 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { FiPlay, FiPause, FiMusic, FiTrash2 } from "react-icons/fi";
-import { usePlayer } from "../../context/PlayerContext";
+// removed PlayerContext
 import useAuth from "../../context/useAuth";
 import { useToast } from "../../context/ToastContext";
 import ConfirmDialog from "../common/ConfirmDialog";
 import { deleteMusic, getAllAlbums } from "../../services/musicService";
 
-const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
-  const { currentSong, isPlaying, playSong, togglePlay, stopSong } = usePlayer();
+const MusicCard = React.memo(({ song = {}, viewMode = "grid", onDelete, isCurrentSong, isCurrentlyPlaying, onPlay, onPause }) => {
   const { user } = useAuth();
   const toast = useToast();
   
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [confirmMessage, setConfirmMessage] = useState("");
-  const isCurrentSong = currentSong?._id === song._id;
-  const isCurrentlyPlaying = isCurrentSong && isPlaying;
+  // Props now provide current song state
 
   const title = song.title || "Untitled Track";
   const artist = song.artist?.username || song.artist_ref?.username || song.artist || "Unknown Artist";
@@ -51,8 +49,8 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
   const executeDelete = async () => {
     try {
       await deleteMusic(song._id);
-      if (isCurrentSong) {
-        stopSong();
+      if (isCurrentSong && onPause) {
+        onPause();
       }
       setIsConfirmOpen(false);
       toast.success("Track deleted successfully");
@@ -68,8 +66,8 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
     return (
       <div 
         onClick={() => {
-          if (isCurrentSong) togglePlay();
-          else playSong(song, queue);
+          if (isCurrentSong) onPause();
+          else onPlay();
         }}
         className={`group relative flex items-center gap-4 rounded-xl p-3 transition-all duration-200 cursor-pointer border md:hidden ${
           isCurrentSong 
@@ -85,8 +83,8 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
              <button 
               onClick={(e) => {
                 e.stopPropagation();
-                if (isCurrentSong) togglePlay();
-                else playSong(song, queue);
+                if (isCurrentSong) onPause();
+                else onPlay();
               }}
               className="text-white"
             >
@@ -121,8 +119,8 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
   return (
     <div 
       onClick={() => {
-        if (isCurrentSong) togglePlay();
-        else playSong(song, queue);
+        if (isCurrentSong) onPause();
+        else onPlay();
       }}
       className={`group relative flex flex-col p-3.5 rounded-3xl glass-card hover:border-[#6C63FF]/40 cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1.5 ${
         isCurrentSong 
@@ -153,8 +151,8 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
             <button 
               onClick={(e) => {
               e.stopPropagation();
-              if (isCurrentSong) togglePlay();
-              else playSong(song, queue);
+              if (isCurrentSong) onPause();
+              else onPlay();
             }}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-[#6C63FF] hover:bg-[#8B5CF6] text-white shadow-xl shadow-[#6C63FF]/50 border border-white/5 transition-transform duration-300 hover:scale-105 active:scale-95"
           >
@@ -187,6 +185,6 @@ const MusicCard = ({ song = {}, queue = [], viewMode = "grid", onDelete }) => {
       />
     </div>
   );
-};
+});
 
 export default MusicCard;

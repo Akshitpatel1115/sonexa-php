@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import AlbumCard from "../components/album/AlbumCard";
 import AlbumCardSkeleton from "../components/common/AlbumCardSkeleton";
 import { getAllAlbums } from "../services/musicService";
-import { useInfiniteScroll } from "../hooks/useInfiniteScroll";
+import UserPagination from "../components/common/UserPagination";
 import { FiDisc } from "react-icons/fi";
 import useAuth from "../context/useAuth";
 
@@ -10,62 +10,41 @@ const Albums = () => {
   const { user } = useAuth();
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("all");
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchAlbums = async (pageNum = 1) => {
     try {
-      if (pageNum === 1) setLoading(true);
-      else setLoadingMore(true);
+      setLoading(true);
       
-      const data = await getAllAlbums(pageNum, 18);
+      const data = await getAllAlbums(pageNum, 12);
       
       const newAlbums = data?.data || [];
       const current_page = data?.current_page || 1;
       const last_page = data?.last_page || 1;
       
-      setAlbums(prev => pageNum === 1 ? newAlbums : [...prev, ...newAlbums]);
-      setHasMore(current_page < last_page);
+      setAlbums(newAlbums);
+      setTotalPages(last_page);
       setPage(current_page);
     } catch (err) {
       console.error(err);
-      if (pageNum === 1) setError("Failed to load albums. Please try again later.");
+      setError("Failed to load albums. Please try again later.");
     } finally {
       setLoading(false);
-      setLoadingMore(false);
     }
   };
 
-  const loadMore = () => {
-    if (!loading && !loadingMore && hasMore && activeTab === "all") {
-      fetchAlbums(page + 1);
-    }
+  const handlePageChange = (newPage) => {
+    fetchAlbums(newPage);
   };
-
-  const lastElementRef = useInfiniteScroll(loadMore, hasMore, loadingMore);
 
   useEffect(() => {
     fetchAlbums();
   }, []);
 
-  if (loading && page === 1) {
-    return (
-      <div className="flex flex-col gap-6 pb-12 pt-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <FiDisc className="text-2xl text-[#6C63FF]" />
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">Albums & Collections</h1>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {[...Array(12)].map((_, i) => <AlbumCardSkeleton key={i} />)}
-        </div>
-      </div>
-    );
-  }
+
 
   if (error) {
     return (
@@ -124,7 +103,11 @@ const Albums = () => {
         )}
       </div>
 
-      {filteredAlbums.length === 0 ? (
+      {loading ? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 mt-4">
+          {[...Array(12)].map((_, i) => <AlbumCardSkeleton key={`skeleton-${i}`} />)}
+        </div>
+      ) : filteredAlbums.length === 0 ? (
         <div className="flex h-[40vh] w-full flex-col items-center justify-center gap-4 text-center mt-10">
           <div className="flex h-24 w-24 items-center justify-center rounded-full bg-surface-hover mb-2">
             <FiDisc className="text-5xl text-text-secondary/50" />
@@ -137,34 +120,27 @@ const Albums = () => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {filteredAlbums.map((album, index) => {
-            if (filteredAlbums.length === index + 1 && activeTab === "all") {
-              return (
-                <div ref={lastElementRef} key={album._id}>
-                  <AlbumCard 
-                    album={{ 
-                      id: album._id, 
-                      title: album.title, 
-                      artist: album.artist?.username || "Unknown Artist" 
-                    }} 
-                  />
-                </div>
-              );
-            } else {
-              return (
-                <AlbumCard 
-                  key={album._id} 
-                  album={{ 
-                    id: album._id, 
-                    title: album.title, 
-                    artist: album.artist?.username || "Unknown Artist" 
-                  }} 
-                />
-              );
-            }
-          })}
-          {loadingMore && activeTab === "all" && [...Array(6)].map((_, i) => <AlbumCardSkeleton key={`skeleton-${i}`} />)}
+        <div className="flex flex-col w-full mt-4">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {filteredAlbums.map((album) => (
+              <AlbumCard 
+                key={album._id} 
+                album={{ 
+                  id: album._id, 
+                  title: album.title, 
+                  artist: album.artist?.username || "Unknown Artist" 
+                }} 
+              />
+            ))}
+          </div>
+          
+          {!loading && filteredAlbums.length > 0 && activeTab === "all" && (
+            <UserPagination 
+              currentPage={page} 
+              totalPages={totalPages} 
+              onPageChange={handlePageChange} 
+            />
+          )}
         </div>
       )}
     </div>

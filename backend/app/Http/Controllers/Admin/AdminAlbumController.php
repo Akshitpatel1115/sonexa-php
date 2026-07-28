@@ -18,7 +18,8 @@ class AdminAlbumController extends Controller
             $query->where('title', 'like', "%{$search}%");
         }
 
-        $albums = $query->orderBy('created_at', 'desc')->paginate(20);
+        $limit = $request->query('limit', 10);
+        $albums = $query->orderBy('created_at', 'desc')->paginate((int) $limit);
 
         return response()->json([
             'message' => 'Albums retrieved successfully',

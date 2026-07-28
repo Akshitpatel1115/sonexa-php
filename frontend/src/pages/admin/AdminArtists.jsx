@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import { getAdminArtists, approveArtist, suspendArtist, rejectArtist } from "../../services/adminService";
+import AdminPagination from "../../components/common/AdminPagination";
 
 
 const AdminArtists = () => {
   const [artists, setArtists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchArtists = async (q = "") => {
+  const fetchArtists = async (q = "", pageNum = 1) => {
     setLoading(true);
     try {
-      const data = await getAdminArtists(q);
+      const data = await getAdminArtists(q, pageNum);
       setArtists(data.data || data); 
+      setTotalPages(data.last_page || 1);
+      setPage(data.current_page || 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -21,7 +26,7 @@ const AdminArtists = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchArtists(search);
+      fetchArtists(search, 1);
     }, 300);
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
@@ -31,7 +36,7 @@ const AdminArtists = () => {
       try {
         if (isSuspended) await approveArtist(id);
         else await suspendArtist(id);
-        fetchArtists(search);
+        fetchArtists(search, page);
       } catch (err) {
         alert("Action failed");
       }
@@ -42,7 +47,7 @@ const AdminArtists = () => {
     if (confirm(`Are you sure you want to completely reject and delete this pending artist?`)) {
       try {
         await rejectArtist(id);
-        fetchArtists(search);
+        fetchArtists(search, page);
       } catch (err) {
         alert("Action failed");
       }
@@ -71,7 +76,6 @@ const AdminArtists = () => {
         <table className="w-full text-left text-xs text-slate-300">
           <thead className="bg-white/5 text-slate-400 font-bold uppercase tracking-wider border-b border-white/5">
             <tr>
-              <th className="px-6 py-4">ID</th>
               <th className="px-6 py-4">Username</th>
               <th className="px-6 py-4">Email</th>
               <th className="px-6 py-4">Status</th>
@@ -80,9 +84,9 @@ const AdminArtists = () => {
           </thead>
           <tbody className="divide-y divide-white/10">
             {loading ? (
-              <tr><td colSpan="5" className="text-center py-12 text-slate-400 animate-pulse font-semibold">Loading artists...</td></tr>
+              <tr><td colSpan="4" className="text-center py-12 text-slate-400 animate-pulse font-semibold">Loading artists...</td></tr>
             ) : artists.length === 0 ? (
-              <tr><td colSpan="5" className="text-center py-12 text-slate-500 font-semibold">No artists found.</td></tr>
+              <tr><td colSpan="4" className="text-center py-12 text-slate-500 font-semibold">No artists found.</td></tr>
             ) : (
               artists.map(artist => {
                 const isSuspended = artist.authBlock && (artist.authBlock.isBlocked === true || !!artist.authBlock.blockedUntil);
@@ -90,7 +94,6 @@ const AdminArtists = () => {
                 
                 return (
                   <tr key={artist._id} className="hover:bg-white/5 transition-colors">
-                    <td className="px-6 py-4 font-mono text-slate-500 text-[11px] truncate max-w-[100px]">{artist._id}</td>
                     <td className="px-6 py-4 font-bold text-white">{artist.username}</td>
                     <td className="px-6 py-4 text-slate-400">{artist.email}</td>
                     <td className="px-6 py-4">
@@ -138,6 +141,14 @@ const AdminArtists = () => {
           </tbody>
         </table>
       </div>
+      
+      {!loading && artists.length > 0 && (
+        <AdminPagination 
+          currentPage={page} 
+          totalPages={totalPages} 
+          onPageChange={(newPage) => fetchArtists(search, newPage)} 
+        />
+      )}
     </div>
   );
 };

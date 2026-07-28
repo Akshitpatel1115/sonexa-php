@@ -9,11 +9,12 @@ import Loader from "./components/common/Loader";
 import PageSkeleton from "./components/common/PageSkeleton";
 
 // Lazy load pages
-const Home = lazy(() => import("./pages/Home"));
+import Home from "./pages/Home";
+import Albums from "./pages/Albums";
 const Login = lazy(() => import("./pages/Login"));
+const AllMusics = lazy(() => import("./pages/AllMusics"));
 const Register = lazy(() => import("./pages/Register"));
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
-const Albums = lazy(() => import("./pages/Albums"));
 const AlbumDetails = lazy(() => import("./pages/AlbumDetails"));
 const CreateAlbum = lazy(() => import("./pages/CreateAlbum"));
 const EditAlbum = lazy(() => import("./pages/EditAlbum"));
@@ -45,6 +46,7 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Home />} />
             <Route path="/album" element={<Albums />} />
+            <Route path="/musics" element={<AllMusics />} />
             <Route path="/album/:id" element={<AlbumDetails />} />
             <Route path="/profile" element={<Profile />} />
           </Route>

@@ -36,7 +36,8 @@ class AdminMusicController extends Controller
             $query->where('title', 'like', "%{$search}%");
         }
 
-        $musics = $query->orderBy('created_at', 'desc')->paginate(20);
+        $limit = $request->query('limit', 10);
+        $musics = $query->orderBy('created_at', 'desc')->paginate((int) $limit);
 
         return response()->json([
             'message' => 'Music retrieved successfully',

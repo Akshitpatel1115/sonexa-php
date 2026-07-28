@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import { getAdminMusic, deleteAdminMusic } from "../../services/adminService";
+import AdminPagination from "../../components/common/AdminPagination";
 
 
 const AdminMusic = () => {
   const [musics, setMusics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const fetchMusic = async (q = "") => {
+  const fetchMusic = async (q = "", pageNum = 1) => {
     setLoading(true);
     try {
-      const data = await getAdminMusic(q);
+      const data = await getAdminMusic(q, pageNum);
+      // Backend returns data structure from paginate()
       setMusics(data.data || data); 
+      setTotalPages(data.last_page || 1);
+      setPage(data.current_page || 1);
     } catch (err) {
       console.error(err);
     } finally {
@@ -21,7 +27,7 @@ const AdminMusic = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchMusic(search);
+      fetchMusic(search, 1);
     }, 300);
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
@@ -30,7 +36,7 @@ const AdminMusic = () => {
     if (confirm("DANGER: Are you sure you want to delete this track? It will be removed from all albums.")) {
       try {
         await deleteAdminMusic(id);
-        fetchMusic(search);
+        fetchMusic(search, page);
       } catch (err) {
         alert("Action failed");
       }
@@ -59,7 +65,6 @@ const AdminMusic = () => {
         <table className="w-full text-left text-xs text-slate-300">
           <thead className="bg-white/5 text-slate-400 font-bold uppercase tracking-wider border-b border-white/5">
             <tr>
-              <th className="px-6 py-4">ID</th>
               <th className="px-6 py-4">Title</th>
               <th className="px-6 py-4">Artist</th>
               <th className="px-6 py-4 text-right">Actions</th>
@@ -67,13 +72,12 @@ const AdminMusic = () => {
           </thead>
           <tbody className="divide-y divide-white/10">
             {loading ? (
-              <tr><td colSpan="4" className="text-center py-12 text-slate-400 animate-pulse font-semibold">Loading music catalog...</td></tr>
+              <tr><td colSpan="3" className="text-center py-12 text-slate-400 animate-pulse font-semibold">Loading music catalog...</td></tr>
             ) : musics.length === 0 ? (
-              <tr><td colSpan="4" className="text-center py-12 text-slate-500 font-semibold">No tracks found.</td></tr>
+              <tr><td colSpan="3" className="text-center py-12 text-slate-500 font-semibold">No tracks found.</td></tr>
             ) : (
               musics.map(track => (
                 <tr key={track._id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-4 font-mono text-slate-500 text-[11px] truncate max-w-[100px]">{track._id}</td>
                   <td className="px-6 py-4 font-bold text-white">{track.title}</td>
                   <td className="px-6 py-4 text-[#6C63FF] font-semibold">{track.artist_ref?.username || 'Unknown'}</td>
                   <td className="px-6 py-4 text-right">
@@ -90,6 +94,14 @@ const AdminMusic = () => {
           </tbody>
         </table>
       </div>
+      
+      {!loading && musics.length > 0 && (
+        <AdminPagination 
+          currentPage={page} 
+          totalPages={totalPages} 
+          onPageChange={(newPage) => fetchMusic(search, newPage)} 
+        />
+      )}
     </div>
   );
 };

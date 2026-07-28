@@ -20,7 +20,8 @@ class AdminArtistController extends Controller
             $query->where('username', 'like', "%{$search}%");
         }
 
-        $artists = $query->orderBy('created_at', 'desc')->paginate(20);
+        $limit = $request->query('limit', 10);
+        $artists = $query->orderBy('created_at', 'desc')->paginate((int) $limit);
 
         // Map authBlock back for frontend compatibility
         foreach ($artists as $artist) {

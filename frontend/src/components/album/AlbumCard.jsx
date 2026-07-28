@@ -1,7 +1,8 @@
+import React from "react";
 import { Link } from "react-router-dom";
 import { FiDisc } from "react-icons/fi";
 
-const AlbumCard = ({ album = {} }) => {
+const AlbumCard = React.memo(({ album = {} }) => {
   const id = album._id || album.id || "1";
   const title = album.title || "Untitled Album";
   const artist = typeof album.artist === "object"
@@ -32,6 +33,6 @@ const AlbumCard = ({ album = {} }) => {
       </div>
     </Link>
   );
-};
+});
 
 export default AlbumCard;

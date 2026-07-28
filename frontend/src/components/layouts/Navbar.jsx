@@ -60,12 +60,18 @@ const Navbar = React.memo(() => {
         </div>
       )}
 
-      <header className="sticky top-4 z-40 mx-4 md:mx-6 my-4 flex h-14 sm:h-20 items-center justify-between rounded-3xl glass-panel border border-white/5 px-4 md:px-7 shadow-2xl backdrop-blur-2xl transition-all duration-300">
+      <header className="sticky top-4 z-40 mx-4 md:mx-6 my-4 flex py-3 sm:py-4 h-auto min-h-[4rem] sm:min-h-[5rem] items-center justify-between rounded-3xl glass-panel border border-white/5 px-4 md:px-7 shadow-2xl backdrop-blur-2xl transition-all duration-300">
       {/* Left Greeting */}
       <div className="flex-1 flex items-center gap-3 min-w-0">
-        {/* Mobile Logo */}
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/5 md:hidden">
-          <img src={logoImg} alt="SONEXA Logo" className="h-full w-full object-cover" />
+        {/* Mobile Logo & Branding */}
+        <div className="flex items-center gap-2 md:hidden">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/5">
+            <img src={logoImg} alt="SONEXA Logo" className="h-full w-full object-cover" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-sm font-extrabold text-white tracking-widest leading-none">SONEXA</span>
+            <span className="text-[9px] text-slate-400 leading-none mt-1">Discover. Play. Repeat.</span>
+          </div>
         </div>
         
         {/* Desktop Greeting */}
@@ -76,7 +82,7 @@ const Navbar = React.memo(() => {
             </span>
           </h1>
           <p className="hidden sm:flex text-xs text-slate-300 font-medium items-center gap-1.5 mt-0.5">
-            <span>Let the music take you away</span>
+            <span>Discover. Play. Repeat.</span>
             <span className="inline-block animate-bounce">🎵</span>
           </p>
         </div>
@@ -163,7 +169,7 @@ const Navbar = React.memo(() => {
         <span className="gradient-text">{user?.username || 'Guest'}</span>
       </h1>
       <p className="text-xs text-slate-400 font-medium flex items-center gap-1.5 mt-1">
-        <span>Let the music take you away</span>
+        <span>Discover. Play. Repeat.</span>
         <span className="inline-block animate-bounce">🎵</span>
       </p>
     </div>

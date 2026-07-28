@@ -177,7 +177,7 @@ const FooterPlayer = () => {
 
       {/* The Footer UI */}
       {!isClosed && (
-        <footer className="h-20 sm:h-24 mx-auto max-w-5xl mb-4 sm:mb-6 rounded-[2rem] glass-panel border border-white/5 flex items-center justify-between px-4 sm:px-8 relative z-50 shadow-2xl backdrop-blur-2xl transition-all w-[95%]">
+        <footer className="h-16 sm:h-24 mx-auto max-w-5xl mb-3 sm:mb-6 rounded-3xl sm:rounded-[2rem] glass-panel border border-white/5 flex items-center justify-between px-3 sm:px-8 relative z-50 shadow-2xl backdrop-blur-2xl transition-all w-[96%] sm:w-[95%]">
           
           {/* Close Button in absolute top-right corner of the rounded footer, or on the far right */}
           <button 
@@ -199,10 +199,10 @@ const FooterPlayer = () => {
           />
         </div>
         <div className="flex flex-col">
-          <h4 className="text-sm font-semibold text-white truncate max-w-[120px] sm:max-w-[200px]">
+          <h4 className="text-xs sm:text-sm font-semibold text-white truncate max-w-[90px] sm:max-w-[200px]">
             {currentSong.title}
           </h4>
-          <p className="text-xs text-text-secondary truncate max-w-[120px] sm:max-w-[200px]">
+          <p className="text-[10px] sm:text-xs text-text-secondary truncate max-w-[90px] sm:max-w-[200px]">
             {currentSong.artist?.username || currentSong.artist || "Unknown Artist"}
           </p>
         </div>
@@ -223,12 +223,12 @@ const FooterPlayer = () => {
           
           <button 
             onClick={togglePlay}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-black transition hover:scale-105 active:scale-95"
+            className="flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-white text-black transition hover:scale-105 active:scale-95 shrink-0"
           >
             {isPlaying ? (
-              <FiPause className="text-xl fill-black" />
+              <FiPause className="text-lg sm:text-xl fill-black" />
             ) : (
-              <FiPlay className="text-xl fill-black ml-1" />
+              <FiPlay className="text-lg sm:text-xl fill-black ml-1" />
             )}
           </button>
 
@@ -241,8 +241,8 @@ const FooterPlayer = () => {
         </div>
 
         {/* Progress Bar */}
-        <div className="flex items-center gap-2 w-full">
-          <span className="text-xs text-text-secondary w-10 text-right">{currentTime}</span>
+        <div className="flex items-center gap-1 sm:gap-2 w-full">
+          <span className="text-[10px] sm:text-xs text-text-secondary w-8 sm:w-10 text-right shrink-0">{currentTime}</span>
           <div 
             ref={progressBarRef}
             onMouseDown={onSeekStart}
@@ -258,7 +258,7 @@ const FooterPlayer = () => {
               style={{ left: `${progress}%` }}
             ></div>
           </div>
-          <span className="text-xs text-text-secondary w-10">{duration}</span>
+          <span className="text-[10px] sm:text-xs text-text-secondary w-8 sm:w-10 shrink-0">{duration}</span>
         </div>
       </div>
 

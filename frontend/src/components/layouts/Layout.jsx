@@ -23,7 +23,7 @@ const Layout = ({ children }) => {
   };
 
   // Remove large padding so content fills the screen and player overlays it absolutely
-  const paddingClass = "pb-20 md:pb-6";
+  const paddingClass = "pb-36 sm:pb-40 md:pb-6";
 
   return (
     <div className={`flex h-[100dvh] w-full flex-col overflow-hidden text-white transition-colors duration-300 ${getThemeClass()}`}>

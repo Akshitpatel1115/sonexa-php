@@ -73,7 +73,7 @@ const GlobalSearch = () => {
   const hasResults = results.music.length > 0 || results.albums.length > 0 || results.artists.length > 0;
 
   return (
-    <div className="relative w-full max-w-md mx-4" ref={searchRef}>
+    <div className="relative w-full max-w-md mx-auto" ref={searchRef}>
       <div className="relative flex items-center w-full h-10 rounded-full glass-card hover:border-[#6C63FF]/50 border border-white/5 overflow-hidden transition-all shadow-md">
         <div className="pl-3.5 pr-2 text-slate-400">
           <FiSearch className="text-base" />

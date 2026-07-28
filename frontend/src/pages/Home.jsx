@@ -85,7 +85,7 @@ const Home = () => {
           </div>
           
           <div className={viewMode === "grid" 
-            ? "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" 
+            ? "grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" 
             : "flex flex-col gap-3 md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
           }>
             {recentHistory.map((song) => (
@@ -136,7 +136,7 @@ const Home = () => {
             </div>
           </div>
 
-          <div className="relative z-10 w-44 h-44 sm:w-56 sm:h-56 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/5 shrink-0 transform rotate-2 hover:rotate-0 transition-transform duration-500">
+          <div className="relative z-10 w-32 h-32 sm:w-56 sm:h-56 rounded-2xl overflow-hidden shadow-2xl border-2 border-white/5 shrink-0 transform rotate-2 hover:rotate-0 transition-transform duration-500">
             <img 
               src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80" 
               alt="Global Hits" 
@@ -182,7 +182,7 @@ const Home = () => {
 
         {loading ? (
           <div className={viewMode === "grid" 
-            ? "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" 
+            ? "grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" 
             : "flex flex-col gap-3 md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
           }>
             {[...Array(12)].map((_, i) => <MusicCardSkeleton key={`skeleton-${i}`} viewMode={viewMode} />)}
@@ -199,7 +199,7 @@ const Home = () => {
           </div>
         ) : (
           <div className={viewMode === "grid" 
-            ? "grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" 
+            ? "grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6" 
             : "flex flex-col gap-3 md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
           }>
             {musics.map((song) => (

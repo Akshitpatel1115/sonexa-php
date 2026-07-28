@@ -72,8 +72,8 @@ const AdminUsers = () => {
         </form>
       </div>
 
-      <div className="glass-panel rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
-        <table className="w-full text-left text-xs text-slate-300">
+      <div className="rounded-3xl glass-panel border border-white/5 overflow-x-auto custom-scrollbar shadow-2xl relative">
+        <table className="w-full text-left text-xs text-slate-300 min-w-[600px]">
           <thead className="bg-white/5 text-slate-400 font-bold uppercase tracking-wider border-b border-white/5">
             <tr>
               <th className="px-6 py-4">Username</th>

@@ -104,7 +104,7 @@ const Albums = () => {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 mt-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 mt-4">
           {[...Array(12)].map((_, i) => <AlbumCardSkeleton key={`skeleton-${i}`} />)}
         </div>
       ) : filteredAlbums.length === 0 ? (
@@ -121,7 +121,7 @@ const Albums = () => {
         </div>
       ) : (
         <div className="flex flex-col w-full mt-4">
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {filteredAlbums.map((album) => (
               <AlbumCard 
                 key={album._id} 

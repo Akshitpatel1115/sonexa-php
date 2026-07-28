@@ -12,7 +12,7 @@ const AlbumCard = React.memo(({ album = {} }) => {
   return (
     <Link 
       to={`/album/${id}`}
-      className="group relative flex flex-col p-3.5 rounded-3xl glass-card hover:border-[#6C63FF]/40 cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1.5 block"
+      className="group relative flex flex-col p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl glass-card hover:border-[#6C63FF]/40 cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1.5 block"
     >
       {/* Icon Artwork Placeholder */}
       <div className="relative aspect-square w-full flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-black/40 border border-white/5 mb-3 shadow-lg">
@@ -24,10 +24,10 @@ const AlbumCard = React.memo(({ album = {} }) => {
 
       {/* Info */}
       <div className="flex flex-col">
-        <h3 className="truncate text-sm font-bold text-white group-hover:text-[#6C63FF] transition-colors duration-300">
+        <h3 className="truncate text-xs sm:text-sm font-bold text-white group-hover:text-[#6C63FF] transition-colors duration-300">
           {title}
         </h3>
-        <p className="truncate text-xs text-slate-400 mt-0.5">
+        <p className="truncate text-[10px] sm:text-xs text-slate-400 mt-0.5">
           {artist}
         </p>
       </div>

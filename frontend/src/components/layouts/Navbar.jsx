@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../context/useAuth";
 import { usePlayer } from "../../context/PlayerContext";
 import api from "../../api/axios";
-import { FiLogOut, FiMoon, FiSun } from "react-icons/fi";
+import { FiLogOut, FiMoon, FiSun, FiSearch, FiX } from "react-icons/fi";
 import ConfirmDialog from "../common/ConfirmDialog";
 import GlobalSearch from "../common/GlobalSearch";
 import logoImg from "../../assets/sonexa-logo.png";
@@ -17,6 +17,7 @@ const Navbar = React.memo(() => {
   const { effectiveTheme, changeTheme } = useTheme();
 
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   const confirmLogout = async () => {
     try {
@@ -41,7 +42,25 @@ const Navbar = React.memo(() => {
   };
 
   return (
-    <header className="sticky top-4 z-50 mx-4 md:mx-6 my-4 flex h-16 sm:h-20 items-center justify-between rounded-3xl glass-panel border border-white/5 px-5 md:px-7 shadow-2xl backdrop-blur-2xl transition-all duration-300">
+    <>
+      {/* Mobile Search Overlay */}
+      {isMobileSearchOpen && (
+        <div className="fixed inset-0 z-[60] bg-background/95 backdrop-blur-3xl flex flex-col p-4 sm:hidden">
+          <div className="flex items-center gap-3 mb-6 pt-2">
+            <button 
+              onClick={() => setIsMobileSearchOpen(false)}
+              className="p-2 rounded-full glass-card text-white shrink-0"
+            >
+              <FiX className="w-5 h-5" />
+            </button>
+            <div className="flex-1">
+              <GlobalSearch />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <header className="sticky top-4 z-40 mx-4 md:mx-6 my-4 flex h-14 sm:h-20 items-center justify-between rounded-3xl glass-panel border border-white/5 px-4 md:px-7 shadow-2xl backdrop-blur-2xl transition-all duration-300">
       {/* Left Greeting */}
       <div className="flex-1 flex items-center gap-3">
         {/* Mobile Logo */}
@@ -70,6 +89,14 @@ const Navbar = React.memo(() => {
 
       {/* Right User Controls */}
       <div className="flex-1 flex items-center justify-end gap-2 sm:gap-3">
+        {/* Mobile Search Toggle */}
+        <button
+          onClick={() => setIsMobileSearchOpen(true)}
+          className="sm:hidden relative p-2 w-9 h-9 flex items-center justify-center rounded-full glass-card hover:bg-white/20 transition-all shadow-md cursor-pointer text-white"
+        >
+          <FiSearch className="w-4 h-4" />
+        </button>
+
         {/* User Profile Badge & Logout */}
         {user && (
           <>
@@ -126,6 +153,7 @@ const Navbar = React.memo(() => {
         onCancel={() => setShowLogoutDialog(false)}
       />
     </header>
+    </>
   );
 });
 

@@ -122,7 +122,7 @@ const MusicCard = React.memo(({ song = {}, viewMode = "grid", onDelete, isCurren
         if (isCurrentSong) onPause();
         else onPlay();
       }}
-      className={`group relative flex flex-col p-3.5 rounded-3xl glass-card hover:border-[#6C63FF]/40 cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1.5 ${
+      className={`group relative flex flex-col p-2.5 sm:p-3.5 rounded-2xl sm:rounded-3xl glass-card hover:border-[#6C63FF]/40 cursor-pointer overflow-hidden transition-all duration-300 hover:-translate-y-1.5 ${
         isCurrentSong 
           ? "border-[#6C63FF] shadow-lg shadow-[#6C63FF]/20" 
           : ""
@@ -154,12 +154,12 @@ const MusicCard = React.memo(({ song = {}, viewMode = "grid", onDelete, isCurren
               if (isCurrentSong) onPause();
               else onPlay();
             }}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-[#6C63FF] hover:bg-[#8B5CF6] text-white shadow-xl shadow-[#6C63FF]/50 border border-white/5 transition-transform duration-300 hover:scale-105 active:scale-95"
+            className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#6C63FF] hover:bg-[#8B5CF6] text-white shadow-xl shadow-[#6C63FF]/50 border border-white/5 transition-transform duration-300 hover:scale-105 active:scale-95"
           >
             {isCurrentlyPlaying ? (
-              <FiPause className="text-xl fill-white" />
+              <FiPause className="text-lg sm:text-xl fill-white" />
             ) : (
-              <FiPlay className="ml-1 text-xl fill-white" />
+              <FiPlay className="ml-1 text-lg sm:text-xl fill-white" />
             )}
             </button>
           </div>
@@ -168,10 +168,10 @@ const MusicCard = React.memo(({ song = {}, viewMode = "grid", onDelete, isCurren
 
       {/* Info */}
       <div className="flex flex-col">
-        <h3 className={`truncate text-sm font-bold transition-colors ${isCurrentSong ? "text-[#6C63FF]" : "text-white group-hover:text-[#6C63FF]"}`}>
+        <h3 className={`truncate text-xs sm:text-sm font-bold transition-colors ${isCurrentSong ? "text-[#6C63FF]" : "text-white group-hover:text-[#6C63FF]"}`}>
           {title}
         </h3>
-        <p className="truncate text-xs text-slate-400 mt-0.5">
+        <p className="truncate text-[10px] sm:text-xs text-slate-400 mt-0.5">
           {artist}
         </p>
       </div>

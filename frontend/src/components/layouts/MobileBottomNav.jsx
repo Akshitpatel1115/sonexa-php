@@ -30,9 +30,7 @@ const MobileBottomNav = () => {
     { name: "Albums", path: "/album", icon: FiDisc },
   ];
 
-  if (isAuthenticated) {
-    navLinks.push({ name: "Profile", path: "/profile", icon: FiUser });
-  }
+  // Profile is accessed via Navbar on mobile
 
   if (user?.role === "artist") {
     navLinks.push({ name: "Album+", path: "/create-album", icon: FiPlusSquare });

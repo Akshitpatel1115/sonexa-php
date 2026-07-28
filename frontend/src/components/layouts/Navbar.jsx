@@ -135,7 +135,7 @@ const Navbar = React.memo(() => {
 
             <button
               onClick={handleLogout}
-              className="flex shrink-0 items-center gap-2 rounded-2xl glass-card hover:bg-white/20 p-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-white transition-all shadow-md active:scale-95 cursor-pointer"
+              className="hidden sm:flex shrink-0 items-center gap-2 rounded-2xl glass-card hover:bg-white/20 p-2 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold text-white transition-all shadow-md active:scale-95 cursor-pointer"
               title="Logout"
             >
               <FiLogOut className="text-[#EF4444]" />

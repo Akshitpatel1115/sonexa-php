@@ -11,6 +11,8 @@ const CreateMusic = () => {
     title: "",
   });
   const [audioFile, setAudioFile] = useState(null);
+  const [coverFile, setCoverFile] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
@@ -36,6 +38,18 @@ const CreateMusic = () => {
     }
   };
 
+  const handleCoverUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCoverFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCoverPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!audioFile) {
@@ -46,6 +60,9 @@ const CreateMusic = () => {
     const formData = new FormData();
     formData.append("title", musicData.title);
     formData.append("music", audioFile);
+    if (coverFile) {
+      formData.append("cover_img", coverFile);
+    }
 
     try {
       setIsSubmitting(true);
@@ -118,6 +135,30 @@ const CreateMusic = () => {
               onChange={handleChange}
               required
             />
+
+            <div className="flex flex-col gap-2">
+              <label className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                Cover Art (Optional)
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
+                  {coverPreview ? (
+                    <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <FiMusic className="text-3xl text-slate-500" />
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-slate-400 max-w-[200px]">
+                    Upload a square image (e.g. 500x500px).
+                  </p>
+                  <label className="flex w-fit cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2 text-xs font-bold text-white transition-colors border border-white/5">
+                    <span>{coverFile ? "Change Image" : "Upload Image"}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 

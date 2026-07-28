@@ -128,6 +128,7 @@ const Albums = () => {
                 album={{ 
                   id: album._id, 
                   title: album.title, 
+                  cover_img: album.cover_img,
                   artist: album.artist?.username || "Unknown Artist" 
                 }} 
               />

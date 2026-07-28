@@ -66,6 +66,9 @@ class AdminMusicController extends Controller
         }
 
         $this->deleteImageKitFile($music->uri);
+        if ($music->cover_img) {
+            $this->deleteImageKitFile($music->cover_img);
+        }
         $music->delete();
 
         AuditLog::create([

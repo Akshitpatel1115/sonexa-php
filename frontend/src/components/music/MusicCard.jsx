@@ -76,7 +76,18 @@ const MusicCard = React.memo(({ song = {}, viewMode = "grid", onDelete, isCurren
         }`}
       >
         <div className="relative h-14 w-14 shrink-0 flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-surface-hover to-background">
-          <FiMusic className="text-2xl text-text-secondary/50 group-hover:text-primary/50 transition-colors" />
+          {song.cover_img ? (
+            <img 
+              src={song.cover_img} 
+              alt={title} 
+              className="w-full h-full object-cover" 
+              onError={(e) => {
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'block';
+              }}
+            />
+          ) : null}
+          <FiMusic className={`text-2xl text-text-secondary/50 group-hover:text-primary/50 transition-colors ${song.cover_img ? 'hidden' : 'block'}`} />
           <div className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-all duration-300 ${
             isCurrentSong ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           }`}>
@@ -130,7 +141,18 @@ const MusicCard = React.memo(({ song = {}, viewMode = "grid", onDelete, isCurren
     >
       {/* Artwork / Placeholder */}
       <div className="relative aspect-square w-full flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-black/40 border border-white/5 mb-3 shadow-lg">
-        <FiMusic className="text-5xl text-slate-400 group-hover:text-[#6C63FF] transition-colors duration-300" />
+        {song.cover_img ? (
+          <img 
+            src={song.cover_img} 
+            alt={title} 
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'block';
+            }}
+          />
+        ) : null}
+        <FiMusic className={`text-5xl text-slate-400 group-hover:text-[#6C63FF] transition-colors duration-300 ${song.cover_img ? 'hidden' : 'block'}`} />
         
         {/* Delete Button - Top Right */}
         {isOwner && (

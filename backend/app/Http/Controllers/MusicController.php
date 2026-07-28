@@ -26,7 +26,11 @@ class MusicController extends Controller
 
     public function createMusic(Request $request)
     {
-        $request->validate(['title' => 'nullable|string', 'music' => 'required|file']);
+        $request->validate([
+            'title' => 'nullable|string', 
+            'music' => 'required|file|mimes:mp3,wav,flac,ogg,m4a|max:5120', 
+            'cover_img' => 'nullable|file|image|max:500'
+        ]);
         try {
             $user = Auth::user() ?? $request->user;
             $title = $request->title ?: $request->file('music')->getClientOriginalName();
@@ -37,9 +41,20 @@ class MusicController extends Controller
                 'folder' => '/musics'
             ]);
             
+            $coverUrl = null;
+            if ($request->hasFile('cover_img')) {
+                $coverUpload = $this->getImageKit()->uploadFile([
+                    'file' => base64_encode(file_get_contents($request->file('cover_img')->path())),
+                    'fileName' => time() . '_cover_' . $request->file('cover_img')->getClientOriginalName(),
+                    'folder' => '/covers'
+                ]);
+                $coverUrl = $coverUpload->result->url;
+            }
+            
             $music = Music::create([
                 'title' => $title,
                 'uri' => $audioUpload->result->url,
+                'cover_img' => $coverUrl,
                 'artist' => (string)$user->_id
             ]);
             
@@ -48,6 +63,7 @@ class MusicController extends Controller
                 'music' => [
                     'id' => $music->_id,
                     'uri' => $music->uri,
+                    'cover_img' => $music->cover_img,
                     'title' => $music->title,
                     'artist' => $music->artist
                 ]
@@ -62,7 +78,7 @@ class MusicController extends Controller
         try { 
             $limit = $request->query('limit', 20);
             $musics = Music::with('artistRef:username,email')
-                ->select('_id', 'title', 'uri', 'artist', 'created_at')
+                ->select('_id', 'title', 'uri', 'cover_img', 'artist', 'created_at')
                 ->orderBy('created_at', 'desc')
                 ->paginate((int) $limit);
 
@@ -104,6 +120,9 @@ class MusicController extends Controller
             }
 
             $this->deleteImageKitFile($music->uri);
+            if ($music->cover_img) {
+                $this->deleteImageKitFile($music->cover_img);
+            }
             $music->delete();
             return response()->json(['message' => 'Music deleted successfully'], 200);
         } catch (\Exception $e) { return response()->json(['message' => 'Internal Server Error'], 500); }

@@ -6,7 +6,7 @@ class Album extends Model
 {
     protected $connection = 'mongodb';
     protected $table = 'albums';
-    protected $fillable = ['title', 'musics', 'artist'];
+    protected $fillable = ['title', 'musics', 'artist', 'cover_img'];
     protected $appends = ['_id'];
 
     public function get_IdAttribute()

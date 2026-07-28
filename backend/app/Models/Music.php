@@ -6,7 +6,7 @@ class Music extends Model
 {
     protected $connection = 'mongodb';
     protected $table = 'musics';
-    protected $fillable = ['uri', 'title', 'artist'];
+    protected $fillable = ['uri', 'title', 'artist', 'cover_img'];
     protected $appends = ['_id'];
 
     public function get_IdAttribute()

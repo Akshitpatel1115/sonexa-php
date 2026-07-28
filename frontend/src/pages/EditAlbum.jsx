@@ -18,6 +18,8 @@ const EditAlbum = () => {
   
   const [artistTracks, setArtistTracks] = useState([]);
   const [selectedTrackIds, setSelectedTrackIds] = useState(new Set());
+  const [coverFile, setCoverFile] = useState(null);
+  const [coverPreview, setCoverPreview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [trackToDelete, setTrackToDelete] = useState(null);
@@ -38,6 +40,7 @@ const EditAlbum = () => {
 
         // Populate album details
         setAlbumData({ title: album.title });
+        setCoverPreview(album.cover_img || null);
         const initialSelected = new Set(album.musics?.map(m => typeof m === 'object' ? m._id : m) || []);
         setSelectedTrackIds(initialSelected);
 
@@ -78,6 +81,18 @@ const EditAlbum = () => {
       }
       return newSet;
     });
+  };
+
+  const handleCoverUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setCoverFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCoverPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const initiateTrackDelete = async (e, trackId) => {
@@ -134,14 +149,21 @@ const EditAlbum = () => {
       return;
     }
 
-    const payload = {
-      title: albumData.title,
-      musics: Array.from(selectedTrackIds)
-    };
+    const formData = new FormData();
+    formData.append("title", albumData.title);
+    
+    // Append each track ID individually since it's an array
+    Array.from(selectedTrackIds).forEach((id, index) => {
+      formData.append(`musics[${index}]`, id);
+    });
+
+    if (coverFile) {
+      formData.append("cover_img", coverFile);
+    }
     
     try {
       setIsSubmitting(true);
-      await updateAlbum(id, payload);
+      await updateAlbum(id, formData);
       toast.success("Album updated successfully!");
       navigate(`/album/${id}`);
     } catch (error) {
@@ -177,14 +199,40 @@ const EditAlbum = () => {
         {/* Album Details Section */}
         <div className="rounded-3xl border border-white/5 glass-card p-6 shadow-xl sm:p-8">
           <h2 className="mb-6 text-xl font-bold text-white">Album Information</h2>
-          <Input
-            label="Album Title"
-            name="title"
-            placeholder="e.g. Hurry Up, We're Dreaming"
-            value={albumData.title}
-            onChange={handleAlbumChange}
-            required
-          />
+          <div className="grid gap-6">
+            <Input
+              label="Album Title"
+              name="title"
+              placeholder="e.g. Hurry Up, We're Dreaming"
+              value={albumData.title}
+              onChange={handleAlbumChange}
+              required
+            />
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+                Album Cover Art (Optional)
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shrink-0 shadow-lg">
+                  {coverPreview ? (
+                    <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <FiMusic className="text-3xl text-slate-500" />
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <p className="text-xs text-slate-400 max-w-[200px]">
+                    Upload a square image (e.g. 500x500px).
+                  </p>
+                  <label className="flex w-fit cursor-pointer items-center justify-center gap-2 rounded-xl bg-white/10 hover:bg-white/20 px-4 py-2 text-xs font-bold text-white transition-colors border border-white/5">
+                    <span>{coverFile ? "Change Image" : "Upload New Image"}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Tracks Selection Section */}

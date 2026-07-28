@@ -16,7 +16,18 @@ const AlbumCard = React.memo(({ album = {} }) => {
     >
       {/* Icon Artwork Placeholder */}
       <div className="relative aspect-square w-full flex items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-white/10 to-black/40 border border-white/5 mb-3 shadow-lg">
-        <FiDisc className="text-6xl text-slate-400 group-hover:text-[#6C63FF] transition-all duration-500 group-hover:scale-110 group-hover:rotate-45" />
+        {album.cover_img ? (
+          <img 
+            src={album.cover_img} 
+            alt={title} 
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'block';
+            }}
+          />
+        ) : null}
+        <FiDisc className={`text-6xl text-slate-400 group-hover:text-[#6C63FF] transition-all duration-500 group-hover:scale-110 group-hover:rotate-45 ${album.cover_img ? 'hidden' : 'block'}`} />
         
         {/* Subtle Glow Overlay on hover */}
         <div className="absolute inset-0 bg-[#6C63FF]/0 transition-colors duration-300 group-hover:bg-[#6C63FF]/10" />

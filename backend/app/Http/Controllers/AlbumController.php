@@ -3,14 +3,35 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Album;
 use App\Models\Music;
+use ImageKit\ImageKit;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class AlbumController extends Controller
 {
+    private function getImageKit() {
+        return new ImageKit(env('IMAGEKIT_PUBLIC_KEY'), env('IMAGEKIT_PRIVATE_KEY'), env('IMAGEKIT_URL_ENDPOINT'));
+    }
+
+    private function deleteImageKitFile($url) {
+        try {
+            if (!$url) return;
+            $parts = explode('/', $url);
+            $filename = end($parts);
+            $fileId = explode('.', $filename)[0];
+            $imageKit = $this->getImageKit();
+            $files = $imageKit->listFiles(['searchQuery' => 'name="' . $fileId . '"']);
+            if (isset($files->result) && count($files->result) > 0) $imageKit->deleteFile($files->result[0]->fileId);
+        } catch (\Exception $e) { Log::error("ImageKit delete error: " . $e->getMessage()); }
+    }
+
     public function createAlbum(Request $request)
     {
-        $request->validate(['title' => 'required|string', 'musics' => 'required|array']);
+        $request->validate([
+            'title' => 'required|string', 
+            'musics' => 'required|array', 
+            'cover_img' => 'nullable|file|image|max:500'
+        ]);
         try {
             $user = Auth::user() ?? $request->user;
             
@@ -22,9 +43,20 @@ class AlbumController extends Controller
                 ], 403);
             }
 
+            $coverUrl = null;
+            if ($request->hasFile('cover_img')) {
+                $coverUpload = $this->getImageKit()->uploadFile([
+                    'file' => base64_encode(file_get_contents($request->file('cover_img')->path())),
+                    'fileName' => time() . '_album_cover_' . $request->file('cover_img')->getClientOriginalName(),
+                    'folder' => '/covers'
+                ]);
+                $coverUrl = $coverUpload->result->url;
+            }
+
             $album = Album::create([
                 'title' => $request->title,
                 'musics' => $request->musics,
+                'cover_img' => $coverUrl,
                 'artist' => (string)$user->_id
             ]);
             
@@ -33,6 +65,7 @@ class AlbumController extends Controller
                 'album' => [
                     'id' => $album->_id,
                     'title' => $album->title,
+                    'cover_img' => $album->cover_img,
                     'musics' => $album->musics,
                     'artist' => $album->artist
                 ]
@@ -45,7 +78,7 @@ class AlbumController extends Controller
         try { 
             $limit = $request->query('limit', 20);
             $albums = Album::with('artistRef:username,email')
-                ->select('_id', 'title', 'musics', 'artist', 'created_at')
+                ->select('_id', 'title', 'cover_img', 'musics', 'artist', 'created_at')
                 ->orderBy('created_at', 'desc')
                 ->paginate((int) $limit);
 
@@ -80,7 +113,11 @@ class AlbumController extends Controller
 
     public function updateAlbum(Request $request, $albumId)
     {
-        $request->validate(['title' => 'sometimes|string', 'musics' => 'sometimes|array']);
+        $request->validate([
+            'title' => 'sometimes|string', 
+            'musics' => 'sometimes|array', 
+            'cover_img' => 'nullable|file|image|max:500'
+        ]);
         try {
             $user = Auth::user() ?? $request->user;
             $album = Album::find($albumId);
@@ -106,6 +143,20 @@ class AlbumController extends Controller
                 $album->title = $request->title;
             }
 
+            if ($request->hasFile('cover_img')) {
+                // Delete old cover if exists
+                if ($album->cover_img) {
+                    $this->deleteImageKitFile($album->cover_img);
+                }
+                
+                $coverUpload = $this->getImageKit()->uploadFile([
+                    'file' => base64_encode(file_get_contents($request->file('cover_img')->path())),
+                    'fileName' => time() . '_album_cover_' . $request->file('cover_img')->getClientOriginalName(),
+                    'folder' => '/covers'
+                ]);
+                $album->cover_img = $coverUpload->result->url;
+            }
+
             $album->save();
             
             return response()->json([
@@ -125,6 +176,10 @@ class AlbumController extends Controller
             
             if ($album->artist !== (string)$user->_id) {
                 return response()->json(['message' => 'Unauthorized: You can only delete your own albums.'], 403);
+            }
+
+            if ($album->cover_img) {
+                $this->deleteImageKitFile($album->cover_img);
             }
 
             $album->delete();

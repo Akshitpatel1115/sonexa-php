@@ -17,8 +17,12 @@ export const createMusic = async (formData) => {
   return response.data;
 };
 
-export const createAlbum = async (payload) => {
-  const response = await api.post("/album/createAlbum", payload);
+export const createAlbum = async (formData) => {
+  const response = await api.post("/album/createAlbum", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 
@@ -40,8 +44,14 @@ export const getAlbumById = async (albumId) => {
   return response.data.albums;
 };
 
-export const updateAlbum = async (albumId, payload) => {
-  const response = await api.put(`/album/${albumId}`, payload);
+export const updateAlbum = async (albumId, formData) => {
+  // Use POST with _method=PUT to properly handle FormData in Laravel
+  formData.append('_method', 'PUT');
+  const response = await api.post(`/album/${albumId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return response.data;
 };
 

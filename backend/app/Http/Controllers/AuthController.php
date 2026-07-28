@@ -417,15 +417,12 @@ class AuthController extends Controller
         }
 
         $request->validate([
-            'avatar' => 'nullable|string',
-            'theme' => 'nullable|string'
+            'username' => 'nullable|string|min:3|max:50',
+            'avatar' => 'nullable|file|image|max:2048'
         ]);
 
-        if ($request->has('avatar')) {
-            $user->avatar = $request->avatar;
-        }
-        if ($request->has('theme')) {
-            $user->theme = $request->theme;
+        if ($request->has('username')) {
+            $user->username = $request->username;
         }
 
         $user->save();
